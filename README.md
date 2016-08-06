@@ -1,2 +1,2 @@
-#dbrandom
-随机任务管理系统
+# origin
+springmvc+shrio+mybatis+beetl
