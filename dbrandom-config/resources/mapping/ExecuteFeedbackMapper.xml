@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.dbr.enforcement.mapper.ExecuteFeedbackMapper">
+
+    <!-- 返回结果集映射 执法反馈信息 -->
+    <resultMap type="executeFeedback" id="executeFeedbackMap">
+        <!-- 反馈编号 -->
+        <id column="id" property="id"/>
+        <!-- 反馈对应计划编号 -->
+        <result column="plan_id" property="planId"/>
+        <!-- 检查内容 -->
+        <result column="check_content" property="checkContent"/>
+        <!-- 处理状态 0 未填报 1 未发现异常 2 责令整改 3 立案查处 -->
+        <result column="process_status" property="processStatus"/>
+        <!-- 检查日期 -->
+        <result column="check_date" property="checkDate"/>
+        <!-- 反馈附件 -->
+        <result column="attach_file" property="attachFile"/>
+        <!-- 反馈状态0 待处理 1 已办结 2已回复 -->
+        <result column="status" property="status"/>
+        <!-- 创建时间 -->
+        <result column="create_date" property="createDate"/>
+        <!-- 修改时间 -->
+        <result column="modify_date" property="modifyDate"/>
+        <!-- 登记人编号 -->
+        <result column="executor_id" property="executorId"/>
+    </resultMap>
+
+    <resultMap id="executeFeedbackFullMap" type="executeFeedback" extends="executeFeedbackMap">
+        <result column="company_id" property="companyId"/>
+        <result column="company_name" property="companyName"/>
+        <result column="group_id" property="groupId"/>
+        <result column="group_name" property="groupName"/>
+        <result column="executor_name" property="executorName"/>
+        <result column="feedback_detail_id" property="feedbackDetailId"/>
+    </resultMap>
+
+    <!-- 执法反馈信息 表名定义 -->
+    <sql id="tableName">t_execute_feedback</sql>
+
+    <!-- 执法反馈信息 所有列定义 -->
+    <sql id="tbAllColumns">
+		id,
+		plan_id,
+		executor_id,
+		check_content,
+		process_status,
+		check_date,
+		attach_file,
+		status,
+		create_date,
+		modify_date
+	</sql>
+
+    <!-- 待处理执法反馈信息 -->
+    <sql id="tbTodoFullColumns">
+		tba.id,
+		tba.plan_id,
+		tba.executor_id,
+		tba.check_content,
+		tba.process_status,
+		tba.check_date,
+		tba.attach_file,
+		tba.status,
+		tba.create_date,
+		tba.modify_date,
+        tbb.company_id,
+        tbb.group_id,
+        tbb.check_date AS record_check_date,
+        tbc.name AS company_name,
+        tbd.group_name,
+        tbe.name AS executor_name,
+        tbf.id AS feedback_detail_id
+	</sql>
+
+    <!-- 执法反馈信息 新增列定义 -->
+    <sql id="tbInsertColumns">
+		plan_id,
+		executor_id,
+		check_content,
+		process_status,
+		check_date,
+		attach_file,
+		status,
+		create_date,
+		modify_date
+	</sql>
+
+    <!-- 新增 执法反馈信息-->
+    <insert id="insert" parameterType="executeFeedback" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES(
+        #{planId},
+        #{executorId},
+        #{checkContent},
+        #{processStatus},
+        #{checkDate},
+        #{attachFile},
+        #{status},
+        sysdate(),
+        #{modifyDate}
+        )
+    </insert>
+
+    <!-- 批量新增 执法反馈信息-->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.planId},
+            #{item.executorId},
+            #{item.checkContent},
+            #{item.processStatus},
+            #{item.checkDate},
+            #{item.attachFile},
+            #{item.status},
+            sysdate(),
+            #{item.modifyDate}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改 执法反馈信息-->
+    <update id="update" parameterType="executeFeedback">
+        UPDATE
+        <include refid="tableName"/>
+        <set>
+            <if test="planId != null and planId != ''">plan_id = #{planId},</if>
+            <if test="executorId != null">executor_id = #{executorId},</if>
+            <if test="checkContent != null and checkContent !=''">check_content = #{checkContent},</if>
+            <if test="processStatus != null">process_status = #{processStatus},</if>
+            <if test="checkDate != null">check_date = #{checkDate},</if>
+            <if test="attachFile != null">attach_file = #{attachFile},</if>
+            <if test="status != null">status = #{status},</if>
+            modify_date = sysdate()
+        </set>
+        WHERE
+        id = #{id}
+    </update>
+
+    <!-- 删除 执法反馈信息-->
+    <delete id="delete" parameterType="int">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id = #{id}
+    </delete>
+
+
+    <!-- 批量删除 执法反馈信息-->
+    <delete id="deleteByIds" parameterType="list">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id IN
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <!-- 查询指定执法反馈信息 -->
+    <select id="queryById" parameterType="Integer" resultMap="executeFeedbackFullMap">
+        SELECT
+        DISTINCT
+        <include refid="tbTodoFullColumns"/>
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN t_executor_random tbb ON tbb.record_no = tba.plan_id
+        LEFT JOIN t_company tbc ON tbc.id = tbb.company_id
+        LEFT JOIN power_group tbd ON tbd.group_id = tbb.group_id
+        LEFT JOIN t_law_executor tbe ON tbe.id = tba.executor_id
+        LEFT JOIN t_execute_detail tbf ON tbf.feedback_id = tba.id
+        WHERE tba.id = #{id}
+    </select>
+
+    <!-- 查询所有执法反馈信息 -->
+    <select id="queryAllExecuteFeedback" resultMap="executeFeedbackMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+    </select>
+
+    <!-- 多条件 查询执法反馈信息 -->
+    <select id="queryByCnd" resultMap="executeFeedbackMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        <where>
+            <if test="id != null">id = #{id}</if>
+            <if test="planId != null and planId != ''">AND plan_id = #{planId}</if>
+            <if test="executorId != null">AND executor_id = #{executorId}</if>
+            <if test="checkContent != null and checkContent !=''">AND check_content = #{checkContent}</if>
+            <if test="processStatus != null">AND process_status = #{processStatus}</if>
+            <if test="checkDate != null">AND check_date = #{checkDate}</if>
+            <if test="attachFile != null">AND attach_file = #{attachFifle}</if>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="createDate != null">AND create_date = #{createDate}</if>
+            <if test="modifyDate != null">AND modify_date = #{modifyDate}</if>
+        </where>
+    </select>
+
+    <!-- 查询待处理反馈信息 -->
+    <select id="queryTodoByCnd" resultMap="executeFeedbackFullMap">
+        SELECT
+        DISTINCT
+        <include refid="tbTodoFullColumns"/>
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN t_executor_random tbb ON tbb.record_no = tba.plan_id
+        LEFT JOIN t_company tbc ON tbc.id = tbb.company_id
+        LEFT JOIN power_group tbd ON tbd.group_id = tbb.group_id
+        LEFT JOIN t_law_executor tbe ON tbe.id = tba.executor_id
+        LEFT JOIN t_execute_detail tbf ON tbf.feedback_id = tba.id
+        <where>
+            <if test="id != null">tba.id = #{id}</if>
+            <if test="planId != null and planId != ''">AND tba.plan_id = #{planId}</if>
+            <if test="executorId != null">AND tba.executor_id = #{executorId}</if>
+            <if test="checkContent != null and checkContent !=''">AND tba.check_content = #{checkContent}</if>
+            <if test="processStatus != null">AND tba.process_status = #{processStatus}</if>
+            <if test="checkDate != null">AND tba.check_date = #{checkDate}</if>
+            <if test="attachFile != null">AND tba.attach_file = #{attachFifle}</if>
+            <if test="status != null">AND tba.status = #{status}</if>
+            <if test="createDate != null">AND tba.create_date = #{createDate}</if>
+            <if test="modifyDate != null">AND tba.modify_date = #{modifyDate}</if>
+            <if test="groupId != null">AND tbb.group_id = #{groupId}</if>
+            <if test="groupId != null">
+                AND tba.status != 2
+                AND tba.id NOT IN (SELECT feedback_id FROM t_execute_detail WHERE distribute_group_id = #{groupId} AND status = 0)
+                OR (tbf.execute_group_id = #{groupId} AND tbf.status = 0)
+            </if>
+            <if test="startDate != null">AND tba.check_date &gt;= #{startDate}</if>
+            <if test="endDate != null">AND tba.check_date &lt;= #{endDate}</if>
+        </where>
+    </select>
+
+    <!-- 查询已分发反馈信息 -->
+    <select id="queryDistributeByCnd" resultMap="executeFeedbackFullMap">
+        SELECT
+        DISTINCT
+        <include refid="tbTodoFullColumns"/>
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN t_executor_random tbb ON tbb.record_no = tba.plan_id
+        LEFT JOIN t_company tbc ON tbc.id = tbb.company_id
+        LEFT JOIN power_group tbd ON tbd.group_id = tbb.group_id
+        LEFT JOIN t_law_executor tbe ON tbe.id = tba.executor_id
+        LEFT JOIN t_execute_detail tbf ON tbf.feedback_id = tba.id
+        <where>
+            <if test="id != null">tba.id = #{id}</if>
+            <if test="planId != null and planId != ''">AND tba.plan_id = #{planId}</if>
+            <if test="executorId != null">AND tba.executor_id = #{executorId}</if>
+            <if test="checkContent != null and checkContent !=''">AND tba.check_content = #{checkContent}</if>
+            <if test="processStatus != null">AND tba.process_status = #{processStatus}</if>
+            <if test="checkDate != null">AND tba.check_date = #{checkDate}</if>
+            <if test="attachFile != null">AND tba.attach_file = #{attachFifle}</if>
+            <if test="status != null">AND tba.status = #{status}</if>
+            <if test="createDate != null">AND tba.create_date = #{createDate}</if>
+            <if test="modifyDate != null">AND tba.modify_date = #{modifyDate}</if>
+            <if test="groupId != null">AND tbb.group_id = #{groupId}</if>
+            <if test="groupId != null">AND tba.status = 0 AND tbf.distribute_group_id = #{groupId}</if>
+            <if test="startDate != null">AND tba.check_date &gt;= #{startDate}</if>
+            <if test="endDate != null">AND tba.check_date &lt;= #{endDate}</if>
+        </where>
+    </select>
+
+
+</mapper>

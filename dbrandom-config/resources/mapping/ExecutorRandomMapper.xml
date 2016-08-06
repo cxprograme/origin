@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.dbr.extract.mapper.ExecutorRandomMapper">
+
+    <!-- 返回结果集映射 执法者抽取纪录信息 -->
+    <resultMap type="executorRandom" id="executorRandomMap">
+        <!-- 执法人员抽取纪录编号 -->
+        <id column="id" property="id"/>
+        <!-- 年份 -->
+        <result column="year" property="year"/>
+        <!-- 抽查企业编号 -->
+        <result column="company_id" property="companyId"/>
+        <!-- 抽查企业类型 -->
+        <result column="company_type" property="companyType"/>
+        <!-- 监察日期 -->
+        <result column="check_date" property="checkDate"/>
+        <!-- 监察人编号 -->
+        <result column="executor_id" property="executorId"/>
+        <!-- 创建时间 -->
+        <result column="create_date" property="createDate"/>
+        <!-- 抽取纪录日期 -->
+        <result column="record_date" property="recordDate"/>
+        <!-- 抽取纪录编号 -->
+        <result column="record_no" property="recordNo"/>
+        <!-- 抽取批次编号 -->
+        <result column="batch_no" property="batchNo"/>
+        <!-- 管理机构编号 -->
+        <result column="group_id" property="groupId"/>
+    </resultMap>
+
+    <resultMap id="executorRandomFullMap" type="executorRandom" extends="executorRandomMap">
+        <!-- 抽查企业名称 -->
+        <result column="company_name" property="companyName"/>
+        <!-- 执法人员姓名 -->
+        <result column="executor_name" property="executorName"/>
+        <!-- 管理机构名称 -->
+        <result column="group_name" property="groupName"/>
+    </resultMap>
+
+    <resultMap id="executorRandomFullWithFeedbackMap" type="executorRandom" extends="executorRandomFullMap">
+        <association property="executeFeedback" javaType="executeFeedback">
+            <!-- 反馈对应计划编号 -->
+            <id column="feedback_id" property="id"/>
+            <result column="feedback_plan_id" property="planId"/>
+            <!-- 检查内容 -->
+            <result column="feedback_check_content" property="checkContent"/>
+            <!-- 处理状态 0 未填报 1 未发现异常 2 责令整改 3 立案查处 -->
+            <result column="feedback_process_status" property="processStatus"/>
+            <!-- 检查日期 -->
+            <result column="feedback_check_date" property="checkDate"/>
+            <!-- 反馈附件 -->
+            <result column="feedback_attach_file" property="attachFile"/>
+            <!-- 反馈状态0 待处理 1 已办结 2已回复 -->
+            <result column="feedback_status" property="status"/>
+        </association>
+    </resultMap>
+
+    <resultMap id="executorRandomGroupedMap" type="executorRandom" extends="executorRandomMap">
+        <!-- 抽查企业名称 -->
+        <result column="start_date" property="startDate"/>
+        <!-- 执法人员姓名 -->
+        <result column="end_date" property="endDate"/>
+    </resultMap>
+
+    <!-- 执法者抽取纪录信息 表名定义 -->
+    <sql id="tableName">t_executor_random</sql>
+
+    <!-- 执法者抽取纪录信息 所有列定义 -->
+    <sql id="tbAllColumns">
+		id,
+		year,
+		company_id,
+		company_type,
+		check_date,
+		executor_id,
+		create_date,
+		record_date,
+		record_no,
+		group_id,
+		batch_no
+	</sql>
+
+    <sql id="tbCndFullColumns">
+		tba.id,
+		tba.year,
+		tba.company_id,
+		tba.company_type,
+		tbb.name AS company_name,
+		tba.check_date,
+		tba.executor_id,
+		tbd.name AS executor_name,
+		tba.create_date,
+		tba.record_date,
+		tba.record_no,
+		tba.group_id,
+		tbc.group_name,
+		tba.batch_no
+	</sql>
+
+    <sql id="tbFullColumns">
+		tba.id,
+		tba.year,
+		tba.company_id,
+		tba.company_type,
+		tbb.company_name,
+		tba.check_date,
+		tba.executor_id,
+		tbd.executor_name,
+		tba.create_date,
+		tba.record_date,
+		tba.record_no,
+		tba.group_id,
+		tbc.group_name,
+		tba.batch_no
+	</sql>
+
+    <!-- 执法者抽取纪录信息 新增列定义 -->
+    <sql id="tbInsertColumns">
+		year,
+		company_id,
+		company_type,
+		check_date,
+		executor_id,
+		create_date,
+		record_date,
+		record_no,
+		group_id,
+		batch_no
+	</sql>
+
+    <!-- 新增 执法者抽取纪录信息-->
+    <insert id="insert" parameterType="executorRandom" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES(
+        #{year},
+        #{companyId},
+        #{companyType},
+        #{checkDate},
+        #{executorId},
+        sysdate(),
+        #{recordDate},
+        #{recordNo},
+        #{groupId},
+        #{batchNo}
+        )
+    </insert>
+
+    <!-- 批量新增 执法者抽取纪录信息-->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.year},
+            #{item.companyId},
+            #{item.companyType},
+            #{item.checkDate},
+            #{item.executorId},
+            sysdate(),
+            #{item.recordDate},
+            #{item.recordNo},
+            #{item.groupId},
+            #{item.batchNo}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改 执法者抽取纪录信息-->
+    <update id="update" parameterType="executorRandom">
+        UPDATE
+        <include refid="tableName"/>
+        <set>
+            <if test="year != null">year = #{year},</if>
+            <if test="companyId != null">company_id = #{companyId},</if>
+            <if test="companyType != null">company_type = #{companyType},</if>
+            <if test="checkDate != null">check_date = #{checkDate},</if>
+            <if test="executorId != null">executor_id = #{executorId},</if>
+            <if test="createDate != null">create_date = #{createDate},</if>
+            <if test="recordDate != null">record_date = #{recordDate},</if>
+            <if test="recordNo != null">record_no = #{recordNo},</if>
+            <if test="groupId != null">group_id = #{groupId},</if>
+            <if test="batchNo != null and batchNo != '' ">batch_no = #{batchNo},</if>
+        </set>
+        WHERE
+        id = #{id}
+    </update>
+
+    <!-- 删除 执法者抽取纪录信息-->
+    <delete id="delete" parameterType="int">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id = #{id}
+    </delete>
+
+
+    <!-- 批量删除 执法者抽取纪录信息-->
+    <delete id="deleteByIds" parameterType="list">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id IN
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <!-- 删除指定批次抽取纪录 -->
+    <delete id="deleteByBatchNo">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        batch_no = #{batchNo}
+    </delete>
+
+
+    <!-- 查询指定执法者抽取纪录信息 -->
+    <select id="queryByExecutorRandomId" parameterType="Integer" resultMap="executorRandomMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有执法者抽取纪录信息 -->
+    <select id="queryAllExecutorRandom" resultMap="executorRandomMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+    </select>
+
+    <!-- 多条件 查询执法者抽取纪录信息 -->
+    <select id="queryByCnd" resultMap="executorRandomMap">
+        SELECT
+        <include refid="tbCndFullColumns"/>
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN t_company tbb ON tbb.id = tba.company_id
+        LEFT JOIN power_group tbc ON tbc.group_id = tba.group_id
+        LEFT JOIN t_law_executor tbd ON tbd.id = tba.executor_id
+        <where>
+            <if test="id != null">tba.id = #{id}</if>
+            <if test="year != null">AND tba.year = #{year}</if>
+            <if test="companyId != null">AND tba.company_id = #{companyId}</if>
+            <if test="companyType != null">AND tba.company_type = #{companyType}</if>
+            <if test="checkDate != null">AND tba.check_date = #{checkDate}</if>
+            <if test="executorId != null">AND tba.executor_id = #{executorId}</if>
+            <if test="createDate != null">AND tba.create_date = #{createDate}</if>
+            <if test="recordDate != null">AND tba.record_date = #{recordDate}</if>
+            <if test="recordNo != null and recordNo != ''">AND tba.record_no = #{recordNo}</if>
+            <if test="groupId != null">AND tba.group_id = #{groupId}</if>
+            <if test="batchNo != null and batchNo != '' ">AND tba.batch_no = #{batchNo}</if>
+        </where>
+    </select>
+
+    <!-- 执法人员登录  -->
+    <select id="queryByExecutor" resultMap="executorRandomMap">
+        SELECT
+        <include refid="tbCndFullColumns"/>
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN t_company tbb ON tbb.id = tba.company_id
+        LEFT JOIN power_group tbc ON tbc.group_id = tba.group_id
+        LEFT JOIN t_law_executor tbd ON tbd.id = tba.executor_id
+        WHERE tbd.mobile = #{executorMobile}
+        AND tba.record_no = #{recordNo}
+        limit 0,1
+    </select>
+
+    <!-- 多条件分组查询 -->
+    <select id="queryByCndWithGrouped" resultMap="executorRandomFullMap">
+        SELECT
+        tba.company_id,
+        group_concat(tbd.name) AS executor_name,
+        tbb.name AS company_name,
+        group_concat(DISTINCT tba.check_date) AS check_date,
+        group_concat(DISTINCT tba.company_type) AS company_type,
+        group_concat(DISTINCT tba.record_no) AS record_no,
+        group_concat(DISTINCT year) AS year,
+        group_concat(DISTINCT tbc.group_name) AS group_name
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN t_company tbb ON tbb.id = tba.company_id
+        LEFT JOIN power_group tbc ON tbc.group_id = tba.group_id
+        LEFT JOIN t_law_executor tbd ON tbd.id = tba.executor_id
+        <where>
+            <if test="year != null">AND tba.year = #{year}</if>
+            <if test="companyId != null">AND tba.company_id = #{companyId}</if>
+            <if test="companyType != null">AND tba.company_typecompany_type = #{companyType}</if>
+            <if test="checkDate != null">AND tba.check_date = #{checkDate}</if>
+            <if test="executorId != null">AND tba.executor_id = #{executorId}</if>
+            <if test="createDate != null">AND tba.create_date = #{createDate}</if>
+            <if test="recordDate != null">AND tba.record_date = #{recordDate}</if>
+            <if test="recordNo != null and recordNo != ''">AND tba.record_no = #{recordNo}</if>
+            <if test="groupId != null">AND tba.group_id = #{groupId}</if>
+            <if test="batchNo != null and batchNo != '' ">AND tba.batch_no = #{batchNo}</if>
+            <if test="companyName != null and companyName != '' ">AND tbb.name LIKE CONCAT('%',#{companyName},'%')</if>
+            <if test="executorName != null and executorName != '' ">AND tbd.name LIKE CONCAT('%',#{executorName},'%')</if>
+            <if test="startDate != null">AND tba.check_date &gt;= #{startDate}</if>
+            <if test="endDate != null">AND tba.check_date &lt;= #{endDate}</if>
+        </where>
+        GROUP BY tba.company_id,tba.check_date
+        ORDER BY tba.check_date ASC
+    </select>
+
+    <!-- 多条件分组查询,包含反馈信息 -->
+    <select id="queryByCndAndGroupedWithFeedback" resultMap="executorRandomFullWithFeedbackMap">
+        SELECT
+        tba.company_id,
+        group_concat(tbd.name) AS executor_name,
+        tbb.name AS company_name,
+        group_concat(DISTINCT tba.check_date) AS check_date,
+        group_concat(DISTINCT tba.company_type) AS company_type,
+        group_concat(DISTINCT tba.record_no) AS record_no,
+        group_concat(DISTINCT year) AS year,
+        group_concat(DISTINCT tbc.group_name) AS group_name,
+        group_concat(DISTINCT tbe.id) AS feedback_id,
+        group_concat(DISTINCT tbe.plan_id) AS feedback_plan_id,
+        group_concat(DISTINCT tbe.check_content) AS feedback_check_content,
+        group_concat(DISTINCT tbe.process_status) AS feedback_process_status,
+        group_concat(DISTINCT tbe.check_date) AS feedback_check_date,
+        group_concat(DISTINCT tbe.attach_file) AS feedback_attach_file,
+        group_concat(DISTINCT tbe.status) AS feedback_status
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN t_company tbb ON tbb.id = tba.company_id
+        LEFT JOIN power_group tbc ON tbc.group_id = tba.group_id
+        LEFT JOIN t_law_executor tbd ON tbd.id = tba.executor_id
+        LEFT JOIN t_execute_feedback tbe ON tbe.plan_id = tba.record_no
+        <where>
+            <if test="year != null">AND tba.year = #{year}</if>
+            <if test="companyId != null">AND tba.company_id = #{companyId}</if>
+            <if test="companyType != null">AND tba.company_typecompany_type = #{companyType}</if>
+            <if test="checkDate != null">AND tba.check_date = #{checkDate}</if>
+            <if test="executorId != null">AND tba.executor_id = #{executorId}</if>
+            <if test="createDate != null">AND tba.create_date = #{createDate}</if>
+            <if test="recordDate != null">AND tba.record_date = #{recordDate}</if>
+            <if test="recordNo != null and recordNo != ''">AND tba.record_no = #{recordNo}</if>
+            <if test="groupId != null">AND tba.group_id = #{groupId}</if>
+            <if test="batchNo != null and batchNo != '' ">AND tba.batch_no = #{batchNo}</if>
+            <if test="companyName != null and companyName != '' ">AND tbb.name LIKE CONCAT('%',#{companyName},'%')</if>
+            <if test="executorName != null and executorName != '' ">AND tbd.name LIKE CONCAT('%',#{executorName},'%')</if>
+            <if test="startDate != null">AND tba.check_date &gt;= #{startDate}</if>
+            <if test="endDate != null">AND tba.check_date &lt;= #{endDate}</if>
+            <if test="processStatus != null and processStatus != 0">AND tbe.process_status = #{processStatus}</if>
+            <if test="processStatus == 0">AND tbe.process_status IS NULL</if>
+        </where>
+        GROUP BY tba.company_id,tba.check_date
+        ORDER BY tba.check_date ASC
+    </select>
+
+    <!-- 统计查询抽取历史 -->
+    <select id="queryByGrouped" resultMap="executorRandomGroupedMap">
+        SELECT
+        record_date,
+        batch_no,
+        min(check_date) AS start_date,
+        max(check_date) AS end_date
+        FROM
+        <include refid="tableName"/>
+        WHERE group_id = #{groupId}
+        GROUP BY record_date, batch_no
+    </select>
+
+</mapper>

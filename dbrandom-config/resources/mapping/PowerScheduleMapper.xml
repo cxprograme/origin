@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.core.power.mapper.PowerScheduleMapper">
+
+    <!-- 返回结果集映射 任务计划 -->
+    <resultMap type="powerSchedule" id="powerScheduleMap">
+        <!-- 任务编号 -->
+        <id column="id" property="id"/>
+        <!-- 任务名称 -->
+        <result column="job_name" property="jobName"/>
+        <!-- 任务分组 -->
+        <result column="job_group" property="jobGroup"/>
+        <!-- 任务执行时间表达式 -->
+        <result column="job_cron" property="jobCron"/>
+        <!-- 任务执行类完整路径 -->
+        <result column="job_class_path" property="jobClassPath"/>
+        <!-- 任务状态 stop 停止 start 启动 pause 暂停 -->
+        <result column="job_status" property="jobStatus"/>
+        <!-- 任务描述 -->
+        <result column="job_description" property="jobDescription"/>
+        <!-- 创建时间 -->
+        <result column="create_date" property="createDate"/>
+        <!-- 更新时间 -->
+        <result column="modify_date" property="modifyDate"/>
+    </resultMap>
+
+    <!-- 任务计划 表名定义 -->
+    <sql id="tableName">power_schedule</sql>
+
+    <!-- 任务计划 所有列定义 -->
+    <sql id="tbAllColumns">
+		id,
+		job_name,
+		job_group,
+		job_cron,
+		job_class_path,
+		job_status,
+		job_description,
+		create_date,
+		modify_date
+	</sql>
+
+    <!-- 任务计划 新增列定义 -->
+    <sql id="tbInsertColumns">
+		job_name,
+		job_group,
+		job_cron,
+		job_class_path,
+		job_status,
+		job_description,
+		create_date
+	</sql>
+
+    <!-- 新增 任务计划-->
+    <insert id="insert" parameterType="powerSchedule" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES(
+        #{jobName},
+        #{jobGroup},
+        #{jobCron},
+        #{jobClassPath},
+        #{jobStatus},
+        #{jobDescription},
+        sysdate()
+        )
+    </insert>
+
+    <!-- 批量新增 任务计划-->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.jobName},
+            #{item.jobGroup},
+            #{item.jobCron},
+            #{item.jobClassPath},
+            #{item.jobStatus},
+            #{item.jobDescription},
+            sysdate()
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改 任务计划-->
+    <update id="update" parameterType="powerSchedule">
+        UPDATE
+        <include refid="tableName"/>
+        <set>
+            <if test="jobName != null and jobName !=''">job_name = #{jobName},</if>
+            <if test="jobGroup != null and jobGroup !=''">job_group = #{jobGroup},</if>
+            <if test="jobCron != null and jobCron !=''">job_cron = #{jobCron},</if>
+            <if test="jobClassPath != null and jobClassPath !=''">job_class_path = #{jobClassPath},</if>
+            <if test="jobStatus != null and jobStatus !=''">job_status = #{jobStatus},</if>
+            <if test="jobDescription != null and jobDescription !=''">job_description = #{jobDescription},</if>
+            modify_date = sysdate()
+        </set>
+        WHERE
+        id = #{id}
+    </update>
+
+    <!-- 删除 任务计划-->
+    <delete id="delete" parameterType="int">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id = #{id}
+    </delete>
+
+
+    <!-- 批量删除 任务计划-->
+    <delete id="deleteByIds" parameterType="list">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id IN
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+
+    <!-- 查询指定任务计划 -->
+    <select id="queryByPowerScheduleId" parameterType="long" resultMap="powerScheduleMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有任务计划 -->
+    <select id="queryAllPowerSchedule" resultMap="powerScheduleMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+    </select>
+
+    <!-- 多条件查询任务计划 -->
+    <select id="queryByCnd" resultMap="powerScheduleMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        <where>
+            <if test="jobName != null and jobName !=''">job_name = #{jobName},</if>
+            <if test="jobGroup != null and jobGroup !=''">AND job_group = #{jobGroup},</if>
+            <if test="jobCron != null and jobCron !=''">AND job_cron = #{jobCron},</if>
+            <if test="jobClassPath != null and jobClassPath !=''">AND job_class_path = #{jobClassPath},</if>
+            <if test="jobStatus != null and jobStatus !=''">AND job_status = #{jobStatus}</if>
+        </where>
+    </select>
+</mapper>

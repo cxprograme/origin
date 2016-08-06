@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+      <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'执法反馈处理纪录', styles:'bootstrap,font-awesome,animate,style,bootstrap-table'}){}%>
+  </head>
+
+  <body class="gray-bg">
+
+    <div class="wrapper wrapper-content">
+      <div class="row">
+        <div class="col-sm-12">
+
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>待处理任务(<span id="todo-total">0</span>)</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <form id="todo-search-form" role="form" class="form-inline" method="post">
+                        <div class="form-group">
+                            <label for="year">年度:</label>
+                            <select id="todoYear" name="type" class="form-control" >
+                                <option value="">选择年度</option>
+                                <option value="2016">2016</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="todoGroupName">管理机构:</label>
+                            <div class="input-group">
+                                <input type="hidden" id="todoGroupId" name="groupId" class="form-control"/>
+                                <input type="text" id="todoGroupName" name="groupName" placeholder="请选择管理机构" class="form-control" readonly />
+                                    <span class="input-group-btn">
+                                        <a id="selectTodoManageGroup" class="btn btn-primary" style="margin-bottom: 0px;"><i class="fa fa-plus"></i></a>
+                                    </span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="year">日期范围:</label>
+                            <input type="text" id="todoStartDate" name="startDate" class="form-control" placeholder="开始时间"/>-
+                            <input type="text" id="todoEndDate" name="endDate" class="form-control" placeholder="结束时间"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="year">处理结果:</label>
+                            <select name="processStatus" class="form-control">
+                                <option value="">选择处理结果</option>
+                                <%for(var dict in dictFun("deal_status","")){%>
+                                <option value="${dict.detailCode}">${dict.detailName}</option>
+                                <%}%>
+                            </select>
+                        </div>
+
+                        <a class="todo-search-btn btn btn-success" style="margin-bottom: 0px;">查询</a>
+                        <button class="btn btn-default" type="reset" style="margin-bottom: 0px;">重置</button>
+                    </form>
+                    <!-- START 数据表格 -->
+                    <table id="todotable"
+                               data-toolbar="#toolbar"
+                               data-side-pagination="server"
+                               data-pagination="true"
+                               data-resizable="true"
+                               data-side-pagination="server"
+                               data-url="/execute/feedback/findtodo.do?groupId=${groupId}"
+                               data-page-size="5">
+                    </table>
+                    <!-- END 数据表格 -->
+                </div>
+            </div>
+
+            <div class="ibox float-e-margins" style="margin-bottom:0">
+                <div class="ibox-title">
+                    <h5>已分发任务(<span id="distribute-total">0</span>)</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <form id="push-search-form" role="form" class="form-inline" method="post">
+                        <div class="form-group">
+                            <label for="year">年度:</label>
+                            <select id="year" name="type" class="form-control" >
+                                <option value="">选择年度</option>
+                                <option value="2016">2016</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="pushGroupName">管理机构:</label>
+                            <div class="input-group">
+                                <input type="hidden" id="pushGroupId" name="groupId" class="form-control" />
+                                <input type="text" id="pushGroupName" name="groupName" placeholder="请选择管理机构" class="form-control" readonly />
+                                    <span class="input-group-btn">
+                                        <a id="selectPushManageGroup" class="btn btn-primary" style="margin-bottom: 0px;"><i class="fa fa-plus"></i></a>
+                                    </span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="year">日期范围:</label>
+                            <input type="text" id="pushStartDate"  name="startDate" class="form-control" placeholder="开始时间"/>-
+                            <input type="text" id="pushEndDate" name="endDate" class="form-control" placeholder="结束时间"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="year">处理结果:</label>
+                            <select name="processStatus" class="form-control">
+                                <option value="">选择处理结果</option>
+                                <%for(var dict in dictFun("deal_status","")){%>
+                                <option value="${dict.detailCode}">${dict.detailName}</option>
+                                <%}%>
+                            </select>
+                        </div>
+
+                        <a class="push-search-btn btn btn-success" style="margin-bottom: 0px;">查询</a>
+                        <button class="btn btn-default" type="reset" style="margin-bottom: 0px;">重置</button>
+                    </form>
+                <!-- START 数据表格 -->
+                <table id="pushedtable"
+                           data-toolbar="#toolbar"
+                           data-side-pagination="server"
+                           data-pagination="true"
+                           data-resizable="true"
+                           data-side-pagination="server"
+                            data-url="/execute/feedback/finddistribute.do?groupId=${groupId}"
+                           data-page-size="5">
+                </table>
+                <!-- END 数据表格 -->
+                </div>
+            </div>
+
+        </div>
+      </div>
+    </div>
+
+    <%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,bootstrap-table,bootstrap-table-zh-CN,layer,laydate'}){}%>
+
+    <script>
+    var $todotable = $('#todotable'),$pushedtable = $('#pushedtable'),selections=[];
+    $(function(){
+        
+        //START 表格配置
+        $todotable.bootstrapTable({
+            height: 340,
+            columns: [
+                    {
+                        title: '编号',
+                        field: 'id',
+                        align: 'left',
+                        valign: 'middle',
+                        visible: false
+                    },
+                    {
+                        title: '编号',
+                        field: 'planId',
+                        align: 'left',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                    {
+                        title: '管理部门',
+                        field: 'groupName',
+                        align: 'left',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                    {
+                        title: '企业名称',
+                        field: 'companyName',
+                        align: 'left',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                    {
+                        title: '登记人',
+                        field: 'executorName',
+                        align: 'left',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                    {
+                        title: '登记日期',
+                        field: 'checkDate',
+                        align: 'left',
+                        valign: 'middle',
+                        formatter: function(v,r){
+                            return laydate.now(v,'YYYY-MM-DD');
+                        }
+                    },
+                    {
+                        title: '处理结果',
+                        field: 'processStatus',
+                        align: 'left',
+                        valign: 'middle',
+                        formatter: function(v,r){
+                            var result = '未填报';
+                            switch (v){
+                                <%for(var dict in dictFun("deal_status","")){%>
+                                case ${dict.detailCode}:
+                                    result = '${dict.detailName}';
+                                    break;
+                                <%}%>
+                                default:
+                                    break;
+
+                            }
+
+                            return result+'&nbsp;<a>附件</a>';
+                        }
+                    },{
+                        title: '状态',
+                        field: 'status',
+                        align: 'left',
+                        valign: 'middle',
+                        formatter: function(v,r){
+                            var result = '';
+                            switch (v){
+                                <%for(var dict in dictFun("feedback_status","")){%>
+                                case ${dict.detailCode}:
+                                    result = '${dict.detailName}';
+                                    break;
+                                <%}%>
+                                default:
+                                    break;
+
+                            }
+
+                            return result;
+                        }
+                    },
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        width: 200,
+                        align: 'center',
+                        valign: 'middle',
+                        formatter: function(v,row){
+                            var content = '<button class="distribute-executedetail-btn btn btn-xs btn-info" data-val="'+row.id+'" data-gid-val="'+row.groupId+'" data-fdid-val="'+row.feedbackDetailId+'"  title="分发"><i class="fa fa-paper-plane-o"></i> 分发 </button>';
+                            if( row.groupId === ${groupId} ){
+                                content += '&nbsp;<button class="deal-executedetail-btn btn btn-xs btn-danger" data-val="'+row.id+'" title="办结"><i class="fa fa-stop-circle-o"></i> 办结</button>';
+                            }
+                            content += '&nbsp;<button class="todoview-executedetail-btn btn btn-xs btn-primary" data-val="'+row.id+'" title="详情"><i class="fa fa-list-alt"></i> 详情</button>';
+                            return content;
+                        }
+                    }
+            ],
+            onLoadSuccess : function(data){
+                $('#todo-total').text(data.total);
+
+                //分发执法反馈
+                $('.distribute-executedetail-btn').on('click',function(){
+                    var feedbackid = $(this).attr('data-val'),gid = $(this).attr('data-gid-val'),fdid = $(this).attr('data-fdid-val');
+                    layer.open({
+                        title: '分发处理',
+                        type: 2,
+                        area: ['780px', '400px'],
+                        content: ['/execute/detail/distribute.do?id='+feedbackid+'&gid='+gid+'&fdid='+fdid, 'no']
+                    });
+                });
+
+                //办结执法反馈
+                $('.deal-executedetail-btn').on('click',function(){
+                    var feedbackid = $(this).attr('data-val');
+                    layer.open({
+                        title: '办结',
+                        type: 2,
+                        area: ['780px', '300px'],
+                        content: ['/execute/detail/deal.do?id='+feedbackid, 'no']
+                    });
+                });
+
+                //执法反馈处理详情
+                $('.todoview-executedetail-btn').on('click',function(){
+                    var feedbackid = $(this).attr('data-val');
+                    location.href = '/execute/detail/detail.do?id='+feedbackid;
+                });
+
+            }
+        });
+        //END 表格配置
+
+
+        var qTodoStart = {
+            elem: '#todoStartDate',
+            event: 'focus',
+            min: '2015-01-01',
+            max: '2099-06-16 23:59:59',
+            choose: function (datas) {
+                qTodoEnd.min = datas;
+                qTodoEnd.start = datas;
+            }
+        };
+        var qTodoEnd = {
+            elem: '#todoEndDate',
+            event: 'focus',
+            min: '2015-01-01',
+            max: '2099-06-16 23:59:59',
+            choose: function (datas) {
+                qTodoStart.max = datas;
+            }
+        }
+
+        laydate(qTodoStart);
+        laydate(qTodoEnd);
+
+
+        // START 表格配置
+        $pushedtable.bootstrapTable({
+            height: 340,
+            columns: [
+                {
+                    title: '编号',
+                    field: 'planId',
+                    align: 'left',
+                    valign: 'middle',
+                    sortable: true
+                },
+                {
+                    title: '管理部门',
+                    field: 'groupName',
+                    align: 'left',
+                    valign: 'middle',
+                    sortable: true
+                },
+                {
+                    title: '企业名称',
+                    field: 'companyName',
+                    align: 'left',
+                    valign: 'middle',
+                    sortable: true
+                },
+                {
+                    title: '登记人',
+                    field: 'executorName',
+                    align: 'left',
+                    valign: 'middle',
+                    sortable: true
+                },
+                {
+                    title: '登记日期',
+                    field: 'endDate',
+                    align: 'left',
+                    valign: 'middle',
+                    formatter: function(v,r){
+                        return laydate.now(v,'YYYY-MM-DD');
+                    }
+                },
+                {
+                    title: '处理结果',
+                    field: 'processStatus',
+                    align: 'left',
+                    valign: 'middle',
+                    formatter: function(v,r){
+                        var result = '未填报';
+                        switch (v){
+                            <%for(var dict in dictFun("deal_status","")){%>
+                            case ${dict.detailCode}:
+                                result = '${dict.detailName}';
+                                break;
+                            <%}%>
+                            default:
+                                break;
+
+                        }
+
+                        return result+'&nbsp;<a>附件</a>';
+                    }
+                },{
+                    title: '状态',
+                    field: 'status',
+                    align: 'left',
+                    valign: 'middle',
+                    formatter: function(v,r){
+                        var result = '';
+                        switch (v){
+                            <%for(var dict in dictFun("feedback_status","")){%>
+                            case ${dict.detailCode}:
+                                result = '${dict.detailName}';
+                                break;
+                            <%}%>
+                            default:
+                                break;
+
+                        }
+
+                        return result;
+                    }
+                },
+                {
+                    field: 'operate',
+                    title: '操作',
+                    width: 200,
+                    align: 'center',
+                    valign: 'middle',
+                    formatter: function(v,row){
+                        return '<button class="view-executedetail-btn btn btn-xs btn-primary" data-val="'+row.id+'" title="详情"><i class="fa fa-list-alt"></i> 详情 </button>';
+                    }
+                }
+            ],
+            onLoadSuccess : function(data){
+                $('#distribute-total').text(data.total);
+                //执法反馈处理详情
+                $('.view-executedetail-btn').on('click',function(){
+                    var feedbackid = $(this).attr('data-val');
+                    location.href = '/execute/detail/viewdetail.do?id='+feedbackid;
+                });
+
+            }
+        });
+        //END 表格配置
+
+        var qPushStart = {
+            elem: '#pushStartDate',
+            event: 'focus',
+            min: '2015-01-01',
+            max: '2099-06-16 23:59:59',
+            choose: function (datas) {
+                qPushEnd.min = datas;
+                qPushEnd.start = datas;
+            }
+        };
+        var qPushEnd = {
+            elem: '#pushEndDate',
+            event: 'focus',
+            min: '2015-01-01',
+            max: '2099-06-16 23:59:59',
+            choose: function (datas) {
+                qPushStart.max = datas;
+            }
+        }
+
+        laydate(qPushStart);
+        laydate(qPushEnd);
+
+
+        var $todoGroup = $('#todoGroupId'),$pushGroup = $('#pushGroupId');
+        //选择管理机构 待处理
+        $('#selectTodoManageGroup,#todoGroupName').on('click',function(){
+            var gid = $todoGroup.val() ? $todoGroup.val() : -1;
+            layer.open({
+                title: '选择管理机构',
+                type: 2,
+                area: ['300px', '550px'],
+                skin: 'layer-ext-espresso',
+                content: ['/power/group/selecttree.do?mt=n&blimit=y&groupIdInput=todoGroupId&groupNameInput=todoGroupName&gid='+gid, 'yes']
+            });
+        });
+
+        //选择管理机构 已分发
+        $('#selectPushManageGroup,#pushGroupName').on('click',function(){
+            var gid = $pushGroup.val() ? $pushGroup.val() : -1;
+            layer.open({
+                title: '选择管理机构',
+                type: 2,
+                area: ['300px', '550px'],
+                skin: 'layer-ext-espresso',
+                content: ['/power/group/selecttree.do?mt=n&blimit=y&groupIdInput=pushGroupId&groupNameInput=pushGroupName&gid='+gid, 'yes']
+            });
+        });
+
+        //查询
+        $('.todo-search-btn').on('click',function(){
+            $todotable.bootstrapTable('refresh',{url: '/execute/feedback/findtodo.do?'+$('#todo-search-form').serialize() });
+        });
+
+        $('.push-search-btn').on('click',function(){
+            $pushedtable.bootstrapTable('refresh',{url: '/execute/feedback/finddistribute.do?'+$('#push-search-form').serialize() });
+        });
+        
+
+        //表格高度自适应
+        $(window).resize(function () {
+            $todotable.bootstrapTable('resetView');
+            $pushedtable.bootstrapTable('resetView');
+        });
+    });
+
+    </script>
+  </body>
+</html>

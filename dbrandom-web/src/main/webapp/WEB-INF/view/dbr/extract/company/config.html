@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'企业随机抽取', styles:'bootstrap,font-awesome,animate,style,dtvalidate,awesome-checkbox,bootstrap-spinner,bootstrap-table'}){%>
+    <style>
+        .month-inputs{
+            margin-bottom:5px;
+        }
+        .month-inputs .month-label{
+            line-height: 30px;
+            padding-left:5px;
+            padding-right: 5px;
+            text-align: center;
+        }
+        .month-inputs .month-split{
+            line-height: 30px;
+            padding-left:0px;
+            padding-right: 5px;
+        }
+        .month-inputs .month-input{
+            padding-left: 0px;
+        }
+        .month-inputs .month-input input{
+            min-width: 30px;
+            padding-left: 2px;
+            padding-right: 2px;
+        }
+    </style>
+    <%}%>
+</head>
+
+
+<body>
+
+<div class="wrapper wrapper-content">
+    <!-- START 内容部分 -->
+    <div class="row">
+        <div class="col-md-4">
+            <!-- START 抽取配置 -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4>抽取配置</h4>
+                </div>
+                <div class="panel-body">
+                    <form class="form-horizontal" id="info-form" method="post">
+                        <input type="hidden" id="re" name="re" value="n"/>
+                        <input type="hidden" id="bno" name="bno" value=""/>
+                        <div class="form-group">
+                            <label class="col-sm-6  text-left">年份:</label>
+                            <label class="col-sm-6  text-left">管理机构:</label>
+                            <div class="col-sm-6">
+                                <select id="year" name="year" class="form-control" valid="r">
+                                    <option value="">选择年份</option>
+                                    <option value="2016">2016</option>
+                                </select>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <select name="manageGroupId" class="form-control" valid="r">
+                                    <option value="">选择管理机构</option>
+                                    <%
+                                    for(var group in groups){
+                                    if(group.groupType < 3){
+                                    %>
+                                    <option value="${group.id}">${group.groupName}</option>
+                                    <%	}
+                                    }%>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-12  text-left">抽取时间段:</label>
+                            <%for( var i in range(1,13)){%>
+                            <div class="col-sm-4">
+                            <div class="checkbox checkbox-primary checkbox-inline">
+                                <input type="checkbox" id="month-${i}" name="checked-month" class="checked-month" value="${i}" valid="r"/>
+                                <label for="month-${i}"> ${i}月 </label>
+                            </div>
+                            </div>
+                            <%}%>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-12  text-left">抽取数量(${yearPlan.importantTotal}重点/${yearPlan.normalTotal}一般):</label>
+
+                            <div id="month-fill-form" class="col-sm-7"> </div>
+
+                            <div class="col-sm-5">
+                                <div id="per-chart" style="min-height: 260px;"></div>
+                            </div>
+
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-10 text-center">
+                                <button type="button" class="save-btn btn btn-primary">
+                                    <i class="fa fa-random"></i> 抽取
+                                </button>
+
+                                <button type="reset" class="save-btn btn btn-primary">
+                                    <i class="fa fa-reply"></i> 重置
+                                </button>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+            <!-- END 抽取配置 -->
+
+            <!-- START 抽取记录表格 -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4>抽取记录</h4>
+                </div>
+                <div class="panel-body">
+                    <ul class="list-group">
+                        <%for(var record in records){%>
+                        <li class="list-group-item">
+                            <a class="show-record-btn btn btn-sm btn-success" style="float: right" data-val="${record.batchNo}">查看</a>
+                            <h3>${record.recordDate,dateFormat="yyyy-MM-dd"}</h3>
+                            <p class="text-success">${strutil.replace(record.groupMonth,",","月,")}月</p>
+                        </li>
+                        <%}%>
+                    </ul>
+                </div>
+            </div>
+            <!-- END 抽取记录表格 -->
+        </div>
+
+        <div class="col-md-8">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <!--<h4>抽取结果</h4>-->
+                    <form role="form" id="search-form" class="form-inline">
+                        <input type="hidden" id="batchNo" name="batchNo" value=""/>
+                        <div class="form-group">
+                            <label for="query-month" >&nbsp;&nbsp;月份:</label>
+                            <select id="query-month" name="month" class="form-control" >
+                                <option value="">全部</option>
+                                <%for(var m in range(1,12)){%>
+                                <option value="${m}">${m}月</option>
+                                <%}%>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="query-trade" >&nbsp;&nbsp;行业:</label>
+                            <select id="query-trade" name="companyTrade" class="form-control" >
+                                <option value="">全部</option>
+                                <%for(var dict in dictFun("company_trade","")){%>
+                                <option value="${dict.detailCode}">${dict.detailName}</option>
+                                <%}%>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="query-type" >&nbsp;&nbsp;类型:</label>
+                            <select id="query-type" name="companyType" class="form-control">
+                                <option value="">全部</option>
+                                <option value="0">一般</option>
+                                <option value="1">重点</option>
+                            </select>
+                        </div>
+                        <button class="search-btn btn btn-success" type="button" style="margin-bottom: 0px;">查询</button>
+                        <button class="btn btn-default" type="reset" style="margin-bottom: 0px;">重置</button>
+                    </form>
+                </div>
+                <div class="panel-body">
+                    <!-- START 操作按钮 -->
+                    <div id="toolbar" style="margin-bottom:5px;">
+                        <a class="re-extract-btn btn btn-sm btn-success"><i class="fa fa-refresh" aria-hidden="true"></i> 重新抽取</a>
+                        <a class="del-btn btn btn-sm btn-danger"><i class="fa fa-trash" aria-hidden="true"></i> 删除</a>
+                    </div>
+                    <!-- END 操作按钮 -->
+
+                    <!-- START 数据表格 -->
+                    <table id="companyrandomtable"
+                           data-toolbar="#toolbar"
+                           data-side-pagination="server"
+                           data-pagination="true"
+                           data-resizable="true"
+                           data-side-pagination="server"
+                           data-url="/extract/company/findall.do?manageGroupId=${groupId}"
+                           data-page-size="15">
+                    </table>
+                    <!-- END 数据表格 -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- END 内容部分 -->
+</div>
+
+
+<%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,echarts,bootstrap-table,bootstrap-table-zh-CN,dtvalidate,dtvalidate-lang-zh_cn,layer,bootstrap-spinner,laytpl'}){}%>
+<script id="extractTpl" type="text/html">
+    <input type="hidden" name="monthRandoms[{{ d.index }}].month" value="{{ d.month }}"/>
+    <div class="input-group month-inputs" id="extract-month-{{ d.month }}" >
+        <div class="col-sm-3 month-label">{{ d.month }}月</div>
+        <div class="col-sm-3 month-input"><input type="text" name="monthRandoms[{{ d.index }}].important" class="important-num form-control" valid="r|number"/></div>
+        <div class="col-sm-1 month-split">/</div>
+        <div class="col-sm-3 month-input"><input type="text" name="monthRandoms[{{ d.index }}].normal" class="normal-num form-control" valid="r|number"/></div>
+    </div>
+</script>
+<script>
+    (function($){
+        $.fn.serializeJson=function(){
+            var serializeObj={};
+            var array=this.serializeArray();
+            var str=this.serialize();
+            $(array).each(function(){
+                if(serializeObj[this.name]){
+                    if($.isArray(serializeObj[this.name])){
+                        serializeObj[this.name].push(this.value);
+                    }else{
+                        serializeObj[this.name]=[serializeObj[this.name],this.value];
+                    }
+                }else{
+                    serializeObj[this.name]=this.value;
+                }
+            });
+            return serializeObj;
+        };
+    })(jQuery);
+
+    var cvalidator,$companyrandomtable = $('#companyrandomtable'),selections=[],monthCount = 0,
+            yearImportant = ${yearPlan.importantTotal},yearNormal = ${yearPlan.normalTotal},
+            currentBatchNo = '',$batchNo = $('#batchNo');
+    $(function () {
+
+        //START 表格配置
+        $companyrandomtable.bootstrapTable({
+            height: getHeight(),
+            columns: [
+                {
+                    field: 'state',
+                    checkbox: true,
+                    align: 'center',
+                    valign: 'middle'
+                },
+                {
+                    title: '记录编号',
+                    field: 'id',
+                    align: 'left',
+                    valign: 'middle',
+                    visible: false
+                },
+                {
+                    title: '企业名称',
+                    field: 'companyName',
+                    align: 'left',
+                    valign: 'middle'
+                },
+                {
+                    title: '月份',
+                    field: 'month',
+                    align: 'left',
+                    valign: 'middle',
+                    formatter: function(v,r){
+                        return v+' 月';
+                    }
+                },
+                {
+                    title: '环保负责人',
+                    field: 'companyEvManager',
+                    align: 'left',
+                    valign: 'middle'
+                },
+                {
+                    title: '手机号码',
+                    field: 'companyMobile',
+                    align: 'left',
+                    valign: 'middle'
+                },
+                {
+                    title: '行业',
+                    field: 'companyTrade',
+                    align: 'left',
+                    valign: 'middle',
+                    formatter: function(v,r){
+                        var result = '未知';
+                        switch (v){
+                            <%for(var dict in dictFun("company_trade","")){%>
+                            case '${dict.detailCode}':
+                                result = '${dict.detailName}';
+                                break;
+                            <%}%>
+                            default:
+                                break;
+                        }
+                        return result;
+                    }
+                },
+                {
+                    title: '类型',
+                    field: 'companyType',
+                    align: 'left',
+                    valign: 'middle',
+                    formatter: function(v,r){
+                        if( v == 1 ){
+                            return '重点';
+                        }else {
+                            return '一般';
+                        }
+                    }
+                }
+            ],
+            onLoadSuccess : function(){
+
+            }
+        });
+        //END 表格配置
+
+        //删除企业单位基本信息
+        $('.del-btn').on('click',function(){
+            var selDatas = $companyrandomtable.bootstrapTable('getSelections');
+            if( selDatas.length == 0 ){
+                layer.msg('请选择要删除的抽取结果',{icon: 0,shade: [0.8, '#393D49'],time: 1500});
+            }else{
+                var ids = [],names = [];
+                $.each(selDatas,function(i,d){
+                    ids.push(d.id);
+                    names.push(d.companyName);
+                });
+                ids = ids.join(',');
+                names = names.join(',');
+
+                layer.confirm('确定要删除这些抽取结果？<br>[<strong>'+names+'</strong>]', {
+                    btn: ['确定','取消'],title:'提示'
+                }, function(){
+                    $.post('/extract/company/delete.do',{ids: ids},function(data){
+                        if( data.ok ){
+                            layer.msg(data.msg,{icon: 1,time: 1500},function(){
+                                //刷新页面
+                                $companyrandomtable.bootstrapTable('refresh');
+                            });
+                        }else{
+                            layer.msg(data.msg,{icon: 0,time: 1500});
+                        }
+                    });
+                });
+
+            }
+        });
+
+        //查看指定批次抽取结果
+        $('.show-record-btn').on('click',function(){
+            currentBatchNo = $(this).attr('data-val');
+            //执行查询操作
+            $companyrandomtable.bootstrapTable('refresh',{query: {batchNo: currentBatchNo}});
+        });
+
+
+        //初始化验证器
+        cvalidator = $('#info-form').dtValidator();
+
+        //提交抽取
+        $('.save-btn').on('click', function () {
+            if (!cvalidator.validResult()) {
+                $.fn.DtValidator.tools.toast('验证失败！', 'error', 2000);
+                return;
+            }
+
+            $('#re').val('n');
+
+            //数据提交
+            $.post('/extract/company/doextract.do', $('#info-form').serialize(), function (data) {
+                if (data.ok) {
+                    currentBatchNo = data.data;
+                    layer.msg(data.msg, {icon: 1, time: 1500, shade: [0.8, '#393D49']}, function () {
+                        $companyrandomtable.bootstrapTable('refresh',{query: {batchNo: currentBatchNo}});
+                    });
+                } else {
+                    layer.msg(data.msg, {icon: 0, time: 1500, shade: [0.8, '#393D49']});
+                }
+            });
+        });
+
+        //重新抽取
+        $('.re-extract-btn').on('click',function(){
+            if (!cvalidator.validResult()) {
+                $.fn.DtValidator.tools.toast('验证失败！', 'error', 2000);
+                return;
+            }
+
+            if( currentBatchNo ){
+                $('#re').val('y');
+                $('#bno').val(currentBatchNo);
+
+                layer.load();
+                //数据提交
+                $.post('/extract/company/doextract.do', $('#info-form').serialize(), function (data) {
+                    layer.closeAll('loading');
+                    if (data.ok) {
+                        currentBatchNo = data.data;
+                        layer.msg(data.msg, {icon: 1, time: 1500, shade: [0.8, '#393D49']}, function () {
+                            $companyrandomtable.bootstrapTable('refresh',{query: {batchNo: currentBatchNo}});
+                        });
+                    } else {
+                        layer.msg(data.msg, {icon: 0, time: 1500, shade: [0.8, '#393D49']});
+                    }
+                });
+            }
+
+        });
+
+        //查询
+        $('.search-btn').on('click',function(){
+            $batchNo.val(currentBatchNo);
+            $companyrandomtable.bootstrapTable('refresh',{url: '',query: $('#search-form').serializeJson()});
+        });
+
+        //选择月份添加配置事件
+        var fillForm = $('#month-fill-form');
+        var gettpl = document.getElementById('extractTpl').innerHTML;
+        $('.checked-month').on('change',function(){
+            if ($(this).is(':checked')){
+                var data = { index: monthCount, month: $(this).val() };
+                laytpl(gettpl).render(data, function(html){
+                    //TODO 添加位置判断
+                    fillForm.append(html);
+
+                    //图表动效
+                    $('.important-num,.normal-num').on('change',function(){
+                        updatePieChart()
+                    });
+                });
+                monthCount++;
+            }else{
+                $('#extract-month-'+$(this).val()).remove();
+            }
+        });
+
+
+        //数据量统计
+        var pieChart = echarts.init(document.getElementById("per-chart"));
+        var pieoption = {
+            tooltip: {
+                trigger: 'item',
+                formatter: "{a} <br/>{b}: {c} ({d}%)"
+            },
+            legend: {
+                orient: 'vertical',
+                x: 'left',
+                data:['已完成重点','已完成一般','未完成重点','未完成一般']
+            },
+            series : [
+                {
+                    name: '年度计划完成百分比',
+                    type: 'pie',
+                    radius: '80%',
+                    center: ['50%', '60%'],
+                    label: {
+                        normal: {
+                            show: false
+                        }
+                    },
+                    data: [
+                        { value: 2, name: '已完成重点' },
+                        { value: 2, name: '已完成一般' },
+                        { value: ${yearPlan.importantTotal-1}, name: '未完成重点' },
+                        { value: ${yearPlan.normalTotal-1}, name: '未完成一般' }
+                    ]
+                }
+            ]
+        };
+
+        function updatePieChart(){
+            var currentData = [],impTotal = 0,norTotal = 0;
+            $('.important-num').each(function(i,d){
+                impTotal += parseInt($(this).val()?$(this).val():0);
+            });
+            $('.normal-num').each(function(i,d){
+                norTotal += parseInt($(this).val()?$(this).val():0);
+            });
+
+            currentData.push( {value: impTotal,name: '已完成重点'});
+            currentData.push( {value: norTotal,name: '已完成一般'});
+            currentData.push( {value: yearImportant - impTotal,name: '未完成重点'});
+            currentData.push( {value: yearNormal - norTotal,name: '未完成一般'});
+
+            console.log(currentData);
+            pieoption.series[0].data = currentData;
+            pieChart.setOption(pieoption);
+        }
+
+        $(window).resize(pieChart.resize);
+
+    });
+
+
+    //表格高度计算
+    function getHeight() {
+        return $(window).height() - $('.btn-group').outerHeight(true) - $('.breadcrumb').outerHeight(true)  - 140;
+    }
+</script>
+</body>
+</html>

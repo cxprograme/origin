@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'用户', styles:'bootstrap,font-awesome,animate,style,bootstrap-table,ztree'}){}%>
+    </head>
+
+  <body>
+
+
+      <div class="wrapper wrapper-content">
+              <!-- START 内容部分 -->
+              <div class="row">
+
+                  <div class="col-md-2">
+                      <div class="panel panel-default">
+                          <div class="panel-heading">组织架构</div>
+                          <div class="panel-body">
+                              <ul id="grouptree" class="ztree"></ul>
+                          </div>
+                      </div>
+                  </div>
+              <div class="col-sm-10" >
+
+                <!-- START 操作按钮 -->
+                <div id="toolbar" class="btn-group" style="margin-bottom:5px;">
+                  <button type="button" class="add-btn btn btn-sm btn-success"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 新增</button>
+                  <button type="button" class="del-btn btn btn-sm btn-danger"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> 删除</button>
+                </div>
+                <!-- END 操作按钮 -->
+                
+                <!-- START 数据表格 -->
+                <table id="powerusertable"
+                           data-toolbar="#toolbar"
+                           data-side-pagination="server"
+                           data-pagination="true"
+                           data-resizable="true"
+                           data-show-columns="true"
+                           data-show-toggle="true"
+                           data-side-pagination="server"
+                           data-url="/power/user/findall.do"
+                           data-page-size="15">
+                </table>
+                <!-- END 数据表格 -->
+                
+            </div>
+      </div>
+    </div>
+    <%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,bootstrap-table,bootstrap-table-zh-CN,layer,ztree,moment-date,moment-zh-cn'}){}%>
+
+    <script>
+    var $powerusertable = $('#powerusertable'),selections=[],current_pid = 0;
+    $(function(){
+
+
+        //分类树初始化
+        var setting = {
+            callback: {
+                onClick: onClick
+            },
+            data: {
+                simpleData: {
+                    enable: true
+                }
+            }
+        };
+        var zNodes =[
+                <%;
+        for(group in groups){
+            if( groupLP.first ){
+                print("{ id:"+group.id+", pId:"+group.groupPid+", name:\""+group.groupName+"\", open:true }");
+            }else{
+                print("{ id:"+group.id+", pId:"+group.groupPid+", name:\""+group.groupName+"\" }");
+            }
+            if( !groupLP.last ){print(",");}
+        }
+        %>
+        ]
+        treeObj = $.fn.zTree.init($("#grouptree"), setting, zNodes);
+        
+        //START 表格配置
+        $powerusertable.bootstrapTable({
+            height: getHeight(),
+            columns: [
+                    {
+                        field: 'state',
+                        checkbox: true,
+                        align: 'center',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '编号',
+                        field: 'id',
+                        align: 'left',
+                        visible: false,
+                        valign: 'middle'
+                    },
+                    {
+                        title: '账号',
+                        field: 'userAccount',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '昵称',
+                        field: 'userNickname',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '姓名',
+                        field: 'userRealname',
+                        align: 'left',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                    {
+                        title: '性别',
+                        field: 'userSex',
+                        align: 'left',
+                        valign: 'middle',
+                        visible: false,
+                        formatter: function(v,r){
+                        	switch (v) {
+							case 0:
+								v = '女';
+								break;
+							case 1:
+								v = '男';
+								break;
+							default:
+								v = '未知';
+								break;
+							}
+                        	return v;
+                        }
+                    },
+                    {
+                        title: '年龄',
+                        field: 'userAge',
+                        align: 'left',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                    {
+                        title: '出生日期',
+                        field: 'userBirthday',
+                        align: 'left',
+                        valign: 'middle',
+                        visible: false,
+                        formatter: function(v,r){
+                        	return moment(v,'x').format('YYYY-MM-DD');
+                        },
+                        sortable: true
+                    },
+                    {
+                        title: '手机',
+                        field: 'userPhone',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '邮箱',
+                        field: 'userEmail',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '锁定标志',
+                        field: 'locked',
+                        align: 'left',
+                        valign: 'middle',
+                        formatter: function(v,r){
+                        	switch (v) {
+							case 0:
+								v = '正常';
+								break;
+							case 1:
+								v = '已锁定';
+								break;
+							default:
+								v = '未知';
+								break;
+							}
+                        	return v;
+                        }
+                    },
+                    {
+                        title: '启用标志',
+                        field: 'enabled',
+                        align: 'left',
+                        valign: 'middle',
+                        formatter: function(v,r){
+                        	switch (v) {
+							case 0:
+								v = '未激活';
+								break;
+							case 1:
+								v = '已激活';
+								break;
+							default:
+								v = '未知';
+								break;
+							}
+                        	return v;
+                        }
+                    },
+                    {
+                        title: '最后登录时间',
+                        field: 'lastLoginDate',
+                        align: 'left',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                    {
+                        title: '登录失败次数',
+                        field: 'failedCount',
+                        align: 'left',
+                        valign: 'middle',
+                        visible: false,
+                        sortable: true
+                    },
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        width: 200,
+                        align: 'center',
+                        valign: 'middle',
+                        formatter: optFormatter
+                    }
+            ],
+            onLoadSuccess : function(){
+                //修改用户信息表
+                $('.edit-poweruser-btn').on('click',function(){
+                    var poweruserid = $(this).attr('data-val');
+                    parent.layer.open({
+                        title: '修改用户',
+                        type: 2,
+                        area: ['780px', '600px'],
+                        content: ['/power/user/editpage.do?id='+poweruserid, 'no']
+                    });
+                });
+            
+                //删除用户信息表
+                $('.del-poweruser-btn').on('click',function(){
+                    var delid = $(this).attr('data-val'),delname =$(this).attr('data-val-name');
+                    layer.confirm('确定要删除用户？<br>[<strong>'+delname+'</strong>]', {
+                        btn: ['确定','取消'],title:'提示'
+                    }, function(){
+                        $.post('/power/user/delete.do',{ids: delid},function(data){
+                            if( data.ok ){
+                                layer.msg(data.msg,{icon: 1,time: 2000},function(){
+                                    //刷新页面
+                                    $powerusertable.bootstrapTable('refresh');
+                                });
+                            }else{
+                                layer.msg(data.msg,{icon: 0,time: 2000});
+                            }
+                        });
+                    });
+
+                });
+
+               //选择绑定的角色
+                $('.bind-powerrole-btn').on('click',function(){
+                    var poweruserid = $(this).attr('data-val');
+                    layer.open({
+                        title: '角色授权',
+                        type: 2,
+                        area: ['780px', '670px'],
+                        content: ['/power/role/selectrole.do?uid='+poweruserid, 'no']
+                    });
+                });
+
+            }
+        });
+        //END 表格配置
+        
+        //新增用户信息表
+        $('.add-btn').on('click',function(){//新增
+            parent.layer.open({
+                title: '新增用户',
+                type: 2,
+                area: ['790px', '600px'],
+                skin: 'layer-ext-espresso', 
+                content: ['/power/user/addpage.do?gid='+current_pid, 'no']
+            });
+        });
+        
+        //删除用户信息表
+        $('.del-btn').on('click',function(){
+            var selDatas = $powerusertable.bootstrapTable('getSelections');
+            if( selDatas.length == 0 ){
+                layer.msg('请选择要删除的用户',{icon: 0,shade: [0.8, '#393D49'],time: 1500});
+            }else{
+                var ids = [],names = [];
+                $.each(selDatas,function(i,d){
+                    ids.push(d.id);
+                    names.push(d.userNickname);
+                });
+                ids = ids.join(',');
+                names = names.join(',');
+                layer.confirm('确定要删除这些用户？<br>[<strong>'+names+'</strong>]', {
+                    btn: ['确定','取消'],title:'提示'
+                }, function(){
+                    $.post('/power/user/delete.do',{ids: ids},function(data){
+                        if( data.ok ){
+                            layer.msg(data.msg,{icon: 1,time: 1500},function(){
+                                //刷新页面
+                                $powerusertable.bootstrapTable('refresh');
+                            });
+                        }else{
+                            layer.msg(data.msg,{icon: 0,time: 1500});
+                        }
+                    });
+                });
+            }
+        });
+        
+        //表格高度自适应
+        $(window).resize(function () {
+            $powerusertable.bootstrapTable('resetView', {
+                height: getHeight()
+            });
+        });
+    });
+
+    //树节点点击事件
+    function onClick(event, treeId, treeNode, clickFlag) {
+        current_pid = treeNode.id;
+        $powerusertable.bootstrapTable('refresh',{url:'/power/user/findbygid.do?gid='+current_pid});
+    }
+    
+    //操作菜单
+    function optFormatter(value,row){
+        var content = '<button class="edit-poweruser-btn btn btn-xs btn-info" data-val="'+row.id+'" title="修改用户信息"><i class="fa fa-edit"></i>  </button>';
+        content += '&nbsp;<button class="del-poweruser-btn btn btn-xs btn-danger" data-val="'+row.id+'"  data-val-name="'+row.userNickname+'" title="删除用户"><i class="fa fa-trash-o"></i>  </button>';
+        content += '&nbsp;<button class="bind-powerrole-btn btn btn-xs btn-success" data-val="'+row.id+'" title="角色授权"><i class="fa fa-link"></i>  </button>';
+        return content;
+    }
+    
+    //表格高度计算
+    function getHeight() {
+        return $(window).height() - $('.btn-group').outerHeight(true) - $('.breadcrumb').outerHeight(true) - 100;
+    }
+    </script>
+  </body>
+</html>

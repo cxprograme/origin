@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+      <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'管理对象', styles:'bootstrap,font-awesome,animate,style,bootstrap-table'}){
+      %>
+      <style>
+      .fixed-table-container{
+          background-color: #fff;
+      }
+      .show-point{
+          cursor: pointer;
+      }
+      .show-point i{
+          margin-right: 10px;
+      }
+      .point-list{
+          padding-left: 20px;
+          list-style: none;
+          display: none;
+      }
+      </style>
+      <%}%>
+  </head>
+
+  <body class="gray-bg">
+
+  <div class="wrapper wrapper-content">
+      <div class="row">
+        <div class="col-sm-12">
+
+            <!-- START 右侧数据 -->
+                <!-- START 查询表单 -->
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>查询表单</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <form id="search-form" role="form" class="form-inline">
+                            <div class="form-group">
+                                <label for="name" >对象名称:</label>
+                                <input type="text" placeholder="请输入对象名称" id="name" name="name" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label for="groupPname" >&nbsp;&nbsp;管理机构:</label>
+                                <div class="input-group">
+                                    <input type="hidden" id="groupPid" name="groupId" class="form-control" valid="r" validTitle="管理机构" validInfoArea="groupId_info_area" />
+                                    <input type="text" id="groupPname" name="groupName" placeholder="请选择管理机构" class="form-control" valid="r" validTitle="管理机构" validInfoArea="groupId_info_area" />
+                                    <span class="input-group-btn">
+                                        <a id="selectManageGroup" class="btn btn-primary" style="margin-bottom: 0px;"><i class="fa fa-plus"></i></a>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="type" >&nbsp;&nbsp;类别:</label>
+                                <select id="type" name="type" class="form-control" >
+                                    <option value="">选择类别</option>
+                                    <option value="1">重点</option>
+                                    <option value="0">一般</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="trade" >&nbsp;&nbsp;行业:</label>
+                                <select id="trade" name="trade" class="form-control">
+                                    <option value="">选择行业</option>
+                                    <%for(var dict in dictFun("company_trade","")){%>
+                                    <option value="${dict.detailCode}">${dict.detailName}</option>
+                                    <%}%>
+                                </select>
+                            </div>
+                            <a class="search-btn btn btn-success" style="margin-bottom: 0px;">查询</a>
+                            <button class="btn btn-default" type="reset" style="margin-bottom: 0px;">重置</button>
+                        </form>
+                    </div>
+                </div>
+                <!-- END 查询表单 -->
+
+                <!-- START 操作按钮 -->
+                <div id="toolbar" style="margin-bottom:5px;">
+                  <a class="add-btn btn btn-sm btn-success"><i class="fa fa-plus" aria-hidden="true"></i> 新增</a>
+                  <a class="del-btn btn btn-sm btn-danger"><i class="fa fa-trash" aria-hidden="true"></i> 删除</a>
+                  <a class="import-btn btn btn-sm btn-primary "><i class="fa fa-long-arrow-down"></i> 批量导入</a>
+                  <a class="export-btn btn btn-sm btn-primary "><i class="fa fa-long-arrow-up"></i> 批量导出</a>
+                </div>
+                <!-- END 操作按钮 -->
+
+                <!-- START 数据表格 -->
+                <table id="companytable"
+                       data-toolbar="#toolbar"
+                       data-side-pagination="server"
+                       data-pagination="true"
+                       data-resizable="true"
+                       data-show-columns="true"
+                       data-show-toggle="true"
+                       data-side-pagination="server"
+                       data-url="/company/info/findall.do?groupId=${groupId}"
+                       data-page-size="15">
+                </table>
+                <!-- END 数据表格 -->
+                
+            <!-- END 右侧数据 -->
+        </div>
+      </div>
+    </div>
+
+    <%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,content,bootstrap-table,bootstrap-table-zh-CN,layer'}){}%>
+
+    <script>
+    var $companytable = $('#companytable'),selections=[],manageGroupId = ${groupId},
+            $sGroupId = $('#groupPid'),$sCompanyName = $('#name'), $sType = $('#type'), $sTrade = $('#trade');
+    $(function(){
+
+        //START 表格配置
+        $companytable.bootstrapTable({
+            height: getHeight(),
+            //detailView: true,
+            columns: [
+                {
+                    field: 'state',
+                    checkbox: true,
+                    align: 'center',
+                    valign: 'middle'
+                },
+                {
+                    title: '企业编号',
+                    field: 'id',
+                    align: 'left',
+                    valign: 'middle',
+                    visible: false
+                },
+                {
+                    title: '对象名称',
+                    field: 'name',
+                    align: 'left',
+                    valign: 'middle',
+                    formatter: function(v,r){
+
+                        var objName = v;
+                        if( r.companyPoints && r.companyPoints.length > 0 ){
+                            var objName = '<span class="show-point"><i class="fa fa-caret-right"></i>' + v + '</span>';
+                            objName += '<ul class="point-list">';
+                            for(i = 0,l= r.companyPoints.length; i < l; i++){
+                                objName += '<li>'+ r.companyPoints[i].pointName + '</li>';
+                            }
+                            objName += '</ul>';
+                        }
+
+                        return objName;
+                    }
+                },
+                {
+                    title: '类型',
+                    field: 'type',
+                    align: 'left',
+                    valign: 'middle',
+                    formatter: function(v,r){
+                        if( v == 1 ){
+                            return '重点';
+                        }else {
+                            return '一般';
+                        }
+                    }
+                },
+                {
+                    title: '行业',
+                    field: 'trade',
+                    align: 'left',
+                    valign: 'middle',
+                    formatter: function(v,r){
+                        var result = '';
+                        switch (v){
+                            <%for(var dict in dictFun("company_trade","")){%>
+                            case '${dict.detailCode}':
+                                result = '${dict.detailName}';
+                                break;
+                            <%}%>
+                            default:
+                                break;
+                        }
+                        return result;
+                    }
+                },
+                {
+                    title: '管理部门',
+                    field: 'groupName',
+                    align: 'left',
+                    valign: 'middle'
+                },
+                {
+                    title: '负责人',
+                    field: 'evManager',
+                    align: 'left',
+                    valign: 'middle'
+                },
+                {
+                    title: '手机',
+                    field: 'mobile',
+                    align: 'left',
+                    valign: 'middle'
+                },
+                {
+                    title: '固定电话',
+                    field: 'phone',
+                    align: 'left',
+                    valign: 'middle'
+                },
+                {
+                    field: 'operate',
+                    title: '操作',
+                    width: 200,
+                    align: 'center',
+                    valign: 'middle',
+                    formatter: optFormatter
+                }
+            ],
+            onLoadSuccess : function(){
+                //修改企业单位基本信息
+                $('.edit-company-btn').on('click',function(){
+                    var companyid = $(this).attr('data-val');
+                    layer.open({
+                        title: '修改管理对象基本信息',
+                        type: 2,
+                        area: ['780px', '550px'],
+                        content: ['/company/info/editpage.do?id='+companyid+'&gid='+manageGroupId, 'no']
+                    });
+                });
+
+                //修改企业管理模式信息
+                $('.manage-company-btn').on('click',function(){
+                    var companyid = $(this).attr('data-val');
+                    layer.open({
+                        title: '管理模式',
+                        type: 2,
+                        area: ['780px', '350px'],
+                        content: ['/company/manageconfig/info/editpagebycompanyandgroup.do?cid='+companyid+"&gid="+manageGroupId, 'no']
+                    });
+                });
+
+                //删除企业单位基本信息
+                $('.del-company-btn').on('click',function(){
+
+                    var delid = $(this).attr('data-val');
+                    var delname = $(this).attr('data-val-name');
+
+                    //删除确认提示
+                    layer.confirm('确定要删除当前管理对象？<br>[<strong>'+delname+'</strong>]', {
+                        btn: ['确定','取消'],title:'提示'
+                    }, function(){
+                        $.post('/company/info/delete.do',{ids: delid},function(data){
+                            if( data.ok ){
+                                layer.msg(data.msg,{icon: 1,time: 1500},function(){
+                                    //刷新页面
+                                    $companytable.bootstrapTable('refresh');
+                                });
+                            }else{
+                                layer.msg(data.msg,{icon: 0,time: 1500});
+                            }
+                        });
+                    });
+
+                });
+
+                //展示下级位点
+                $('.show-point').on('click',function(){
+                    var $icon = $(this).children('i');
+                    if( $icon.hasClass('fa-caret-right') ){
+                        $icon.addClass('fa-caret-down').removeClass('fa-caret-right');
+                        $(this).next('ul').show();
+                    }else{
+                        $icon.addClass('fa-caret-right').removeClass('fa-caret-down');
+                        $(this).next('ul').hide();
+                    }
+                });
+
+            }
+        });
+        //END 表格配置
+
+        //新增企业单位基本信息
+        $('.add-btn').on('click',function(){//新增
+            layer.open({
+                title: '新增管理对象',
+                type: 2,
+                area: ['790px', '550px'],
+                skin: 'layer-ext-espresso',
+                content: ['/company/info/addpage.do', 'no']
+            });
+        });
+
+        //导入企业单位基本信息
+        $('.import-btn').on('click',function(){//新增
+            layer.open({
+                title: '批量导入管理对象',
+                type: 2,
+                area: ['790px', '250px'],
+                skin: 'layer-ext-espresso',
+                content: ['/company/info/importpage.do', 'no']
+            });
+        });
+
+        //导入企业单位基本信息
+        $('.export-btn').on('click',function(){//新增
+            location.href = "/company/info/export.do?"+$('#search-form').serialize();
+        });
+        
+        //删除企业单位基本信息
+        $('.del-btn').on('click',function(){
+            var selDatas = $companytable.bootstrapTable('getSelections');
+            if( selDatas.length == 0 ){
+                layer.msg('请选择要删除的管理对象',{icon: 0,shade: [0.8, '#393D49'],time: 1500});
+            }else{
+                var ids = [],names = [];
+                $.each(selDatas,function(i,d){
+                    ids.push(d.id);
+                    names.push(d.name);
+                });
+                ids = ids.join(',');
+                names = names.join(',');
+
+                layer.confirm('确定要删除这些管理对象？<br>[<strong>'+names+'</strong>]', {
+                    btn: ['确定','取消'],title:'提示'
+                }, function(){
+                    $.post('/company/info/delete.do',{ids: ids},function(data){
+                        if( data.ok ){
+                            layer.msg(data.msg,{icon: 1,time: 1500},function(){
+                                //刷新页面
+                                $companytable.bootstrapTable('refresh');
+                            });
+                        }else{
+                            layer.msg(data.msg,{icon: 0,time: 1500});
+                        }
+                    });
+                });
+
+            }
+        });
+
+        //选择管理机构
+        $('#selectManageGroup').on('click',function(){
+            layer.open({
+                title: '选择管理机构',
+                type: 2,
+                area: ['300px', '550px'],
+                skin: 'layer-ext-espresso',
+                content: ['/power/group/selecttree.do?mt=n&blimit=y', 'yes']
+            });
+        });
+
+        //管理对象查询
+        $('.search-btn').on('click',function(){
+            $companytable.bootstrapTable('refresh',{url: '/company/info/findall.do?groupId='+$sGroupId.val()+'&type='+$sType.val()+'&trade='+$sTrade.val() + '&searchName='+$sCompanyName.val() });
+        });
+        
+        //表格高度自适应
+        $(window).resize(function () {
+            $companytable.bootstrapTable('resetView', {
+                height: getHeight()
+            });
+        });
+    });
+
+    //操作菜单
+    function optFormatter(value,row){
+        var content = '<button class="edit-company-btn btn btn-xs btn-success" data-val="'+row.id+'" data-val="'+row.name+'" title="基本信息"><i class="fa fa-edit"></i>  基本信息</button>';
+        content += '&nbsp;<button class="manage-company-btn btn btn-xs btn-primary" data-val="'+row.id+'" title="管理模式"><i class="fa fa-edit"></i>  管理模式</button>';
+        //content += '&nbsp;<button class="del-company-btn btn btn-xs btn-danger" data-val="'+row.id+'" title="删除"><i class="fa fa-trash-o"></i>  删除</button>';
+        return content;
+    }
+    
+    //表格高度计算
+    function getHeight() {
+        return $(window).height() - $('.btn-group').outerHeight(true) - $('.breadcrumb').outerHeight(true) - $('.ibox').outerHeight(true) - 40;
+    }
+    </script>
+  </body>
+</html>

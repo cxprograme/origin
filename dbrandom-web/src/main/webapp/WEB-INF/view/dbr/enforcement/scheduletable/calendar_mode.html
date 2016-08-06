@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'执法排班表', styles:'bootstrap,font-awesome,animate,style,bootstrap-table,fullcalendar'}){%>
+    <style>
+        .fc-day-grid-event .fc-content {
+            height: 20px;
+            line-height: 20px;
+            padding-left:10px;
+        }
+    </style>
+    <style type="text/css" media="print">
+        .fc-left,.fc-right { display:none;}
+    </style>
+    <%}%>
+</head>
+</head>
+<body>
+
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+
+            <!-- START 右侧数据 -->
+            <div id='calendar'></div>
+            <!-- END 右侧数据 -->
+        </div>
+    </div>
+</div>
+
+<%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,bootstrap-table,bootstrap-table-zh-CN,layer,moment-date,fullcalendar,fullcalendar-lang-zh'}){}%>
+<script>
+    var $calendar = $('#calendar');
+    $(document).ready(function() {
+        var currentTimezone = false;
+        function renderCalendar() {
+            $('#calendar').fullCalendar({
+                customButtons: {
+                    backListButton: {
+                        text: '返回列表',
+                        click: function() {
+                            location.href = '/scheduletable/main.do';
+                        }
+                    },
+                    pintButton: {
+                        text: '打印排班表',
+                        click: function() {
+                            window.print();
+                        }
+                    }
+                },
+                header: {
+                    left: 'prev,next today backListButton',
+                    center: 'title',
+                    right: 'pintButton month'
+                },
+                height: getHeight(),
+                timezone: currentTimezone,
+                editable: true,
+                selectable: true,
+                eventLimit: true,
+                events:function(start, end, timezone, callback) {
+                    var startDate = moment(start.toDate()).format('YYYY-MM-DD'),endDate = moment(end.toDate()).format('YYYY-MM-DD')
+                    $calendar.fullCalendar( 'removeEvents');
+                    $.ajax({
+                        url: "/scheduletable/calendarEvents.do?groupId=${groupId}&startDate="+startDate+"&endDate="+endDate+"&time="+new Date(),
+                        type:"post",
+                        dataType: 'json',
+                        cache:false,
+                        success: function(obj){
+
+                            var events =[];
+                            $.each(obj, function (n, value) {
+                                if(value.companyType==1) {
+                                    events.push({
+                                        id: value.companyId,
+                                        title: value.executorName,
+                                        start: value.checkDate.split(" ")[0],          //字符串时间格式化
+                                        color: "rgb(243,222,250)",
+                                        textColor: 'black'
+                                    });
+                                }else if(value.companyType==0){
+
+                                    events.push({
+                                        id: value.companyId,
+                                        title: value.executorName,
+                                        start: value.checkDate.split(" ")[0],          //字符串时间格式化
+                                        color:'rgb(221,247,212)',
+                                        textColor: 'black'
+                                    });
+                                }
+
+                            });
+                            callback(events);
+                        },
+                        error:function(){
+                            alert("加载数据失败")
+                        }
+                    })
+                },
+                loading: function(bool) {
+                    $('#loading').toggle(bool);
+                },
+                dayClick: function(date, jsEvent, view, resourceObj) {
+
+                },
+                select: function(startDate, endDate) {
+
+                },
+                eventClick:function(event, jsEvent, view ){
+
+                }
+
+            });
+        }
+        renderCalendar();
+    });
+
+    //表格高度计算
+    function getHeight() {
+        return $(window).height() -  $('.breadcrumb').outerHeight(true)  - 40;
+    }
+
+
+</script>
+</body>
+</html>

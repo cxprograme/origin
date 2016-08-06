@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.core.power.mapper.PowerMenuMapper">
+
+	<!-- 返回结果集映射 菜单信息 -->
+	<resultMap type="powerMenu" id="powerMenuMap">
+		<!-- 菜单编号 -->
+		<id column="menu_id" property="id" />
+		<!-- 上级菜单编号 -->
+		<result column="menu_pid" property="menuPid"/>	
+		<!-- 菜单名称 -->
+		<result column="menu_name" property="menuName"/>
+		<!-- 上级菜单名称 -->
+		<result column="parent_menu_name" property="parentMenuName"/>
+		<!-- 菜单编码 -->
+		<result column="menu_code" property="menuCode"/>	
+		<!-- 菜单地址 -->
+		<result column="menu_url" property="menuUrl"/>	
+		<!-- 菜单图标 -->
+		<result column="menu_icon" property="menuIcon"/>
+		<!-- 排序号 -->
+		<result column="order_id" property="orderId"/>
+		<association property="powerPermission" javaType="powerPermission">
+			<!-- 权限编号 -->
+			<id column="permission_id" property="id" />
+			<!-- 权限代码 -->
+			<result column="permission_code" property="permissionCode"/>
+			<!-- 删除标志 -->
+			<result column="deleted" property="deleted"/>
+			<!-- 创建时间 -->
+			<result column="create_date" property="createDate"/>
+			<!-- 更新时间 -->
+			<result column="modify_date" property="modifyDate"/>
+		</association>
+	</resultMap>
+	
+	<!-- 菜单信息 表名定义 -->
+	<sql id="tableName">power_menu</sql>
+
+	<!-- 菜单信息 所有列定义 -->
+	<sql id="tbAllColumns">
+		menu_id,
+		menu_pid,
+		menu_name,
+		menu_code,
+		menu_url,
+		menu_icon,
+		order_id
+	</sql>
+
+	<!-- 菜单信息 查询所有列定义 -->
+	<sql id="tbSelectAllColumns">
+		tba.menu_id,
+		tba.menu_pid,
+		tba.menu_name,
+		tbb.menu_name AS parent_menu_name,
+		tba.menu_code,
+		tba.menu_url,
+		tba.menu_icon,
+		tba.order_id,
+		tbc.permission_id,
+		tbc.permission_code,
+		tbc.create_date,
+		tbc.modify_date,
+		tbc.deleted
+	</sql>
+
+	<!-- 菜单信息 新增列定义 -->
+	<sql id="tbInsertColumns">
+		menu_pid,
+		menu_name,
+		menu_code,
+		menu_url,
+		menu_icon,
+		order_id
+	</sql>
+
+	<!-- 新增 菜单信息-->
+	<insert id="insert" parameterType="powerMenu" useGeneratedKeys="true" keyColumn="menu_id" keyProperty="id">
+		INSERT INTO 
+			<include refid="tableName"/>
+			(
+			<include refid="tbInsertColumns"/>
+			)
+		VALUES(
+			#{menuPid},
+			#{menuName},
+			#{menuCode},
+			#{menuUrl},
+			#{menuIcon},
+			#{orderId}
+		)
+	</insert>	
+
+	<!-- 批量新增 菜单信息-->
+	<insert id="insertBatch" parameterType="list">
+		INSERT INTO 
+			<include refid="tableName"/>
+			(
+			<include refid="tbInsertColumns"/>
+			)
+		VALUES
+		<foreach item="item" index="index" collection="list" separator=",">
+        (
+			#{item.menuPid},
+			#{item.menuName},
+			#{item.menuCode},
+			#{item.menuUrl},
+			#{item.menuIcon},
+			#{item.orderId}
+		)
+		</foreach>
+	</insert>
+	
+	<!-- 修改 菜单信息-->
+	<update id="update" parameterType="powerMenu">
+		UPDATE 
+			<include refid="tableName"/>
+		<set>
+			<if test="menuPid != null ">menu_pid = #{menuPid},</if>
+			<if test="menuName != null and menuName !=''">menu_name = #{menuName},</if>
+			<if test="menuCode != null and menuCode !=''">menu_code = #{menuCode},</if>
+			<if test="menuUrl != null and menuUrl !=''">menu_url = #{menuUrl},</if>
+			<if test="menuIcon != null and menuIcon !=''">menu_icon = #{menuIcon},</if>
+			<if test="orderId != null">order_id = #{orderId}</if>
+		</set>
+		WHERE
+			menu_id = #{id}
+	</update>
+	
+	<!-- 删除 菜单信息-->
+	<delete id="delete" parameterType="long">
+		DELETE FROM 
+			<include refid="tableName"/>
+		WHERE
+			menu_id = #{id}
+	</delete>
+	
+	
+	<!-- 批量删除 菜单信息-->
+	<delete id="deleteByIds" parameterType="list">
+		DELETE FROM 
+			<include refid="tableName"/>
+		WHERE
+			menu_id IN 
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+        #{item}
+		</foreach>
+	</delete>
+
+	<!-- 查询指定菜单信息 -->
+	<select id="queryByPowerMenuId" parameterType="long" resultMap="powerMenuMap"> 
+		SELECT <include refid="tbSelectAllColumns"/>
+		FROM <include refid="tableName"/>  tba
+		LEFT JOIN <include refid="tableName"/> tbb ON  tbb.menu_id = tba.menu_pid
+		LEFT JOIN power_permission tbc ON tbc.privilege_id = tba.menu_id
+		WHERE tba.menu_id = #{id}
+	</select>
+
+	<!-- 查询指定菜单子菜单信息 -->
+	<select id="queryByMenuPid" parameterType="long" resultMap="powerMenuMap">
+		SELECT <include refid="tbSelectAllColumns"/>
+		FROM <include refid="tableName"/> tba
+		LEFT JOIN <include refid="tableName"/> tbb ON  tbb.menu_id = tba.menu_pid
+		LEFT JOIN power_permission tbc ON tbc.privilege_id = tba.menu_id
+		WHERE tba.menu_pid = #{menuPid}
+		ORDER BY tba.order_id ASC
+	</select>
+
+	<!-- 查询所有菜单信息 -->
+	<select id="queryAllPowerMenu" resultMap="powerMenuMap"> 
+		SELECT <include refid="tbSelectAllColumns"/>
+		FROM <include refid="tableName"/> tba
+		LEFT JOIN <include refid="tableName"/> tbb ON  tbb.menu_id = tba.menu_pid
+		LEFT JOIN power_permission tbc ON tbc.privilege_id = tba.menu_id
+		ORDER BY tba.menu_pid ASC ,tba.order_id ASC
+	</select>
+	
+	<select id="queryByUserId" parameterType="long" resultMap="powerMenuMap">
+		SELECT <include refid="tbSelectAllColumns"/>
+		FROM <include refid="tableName"/>  tba
+		LEFT JOIN <include refid="tableName"/> tbb ON  tbb.menu_id = tba.menu_pid
+		LEFT JOIN power_permission tbc ON tbc.privilege_id = tba.menu_id
+		LEFT JOIN rel_role_permission tbd ON tbd.permission_id = tbc.permission_id
+		LEFT JOIN rel_user_role tbe ON tbe.role_id = tbd.role_id
+		WHERE tbe.user_id = #{userId}
+		ORDER BY tba.menu_pid ASC ,tba.order_id ASC
+	</select>
+	
+</mapper>

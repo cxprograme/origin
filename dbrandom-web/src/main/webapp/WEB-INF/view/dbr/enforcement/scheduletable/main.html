@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+      <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'排班表管理', styles:'bootstrap,font-awesome,animate,style,bootstrap-table,awesome-checkbox'}){
+      %>
+      <style>
+      .fixed-table-container{
+          background-color: #fff;
+      }
+      </style>
+      <%}%>
+  </head>
+
+  <body class="gray-bg">
+
+  <div class="wrapper wrapper-content">
+      <div class="row">
+        <div class="col-sm-12">
+
+            <!-- START 右侧数据 -->
+                <!-- START 查询表单 -->
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>查询表单</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <form id="search-form" role="form" class="form-inline">
+                            <div class="form-group">
+                                <label for="year">年度:</label>
+                                <select id="year" name="year" class="form-control" >
+                                    <option value="">选择年度</option>
+                                    <option value="2016">2016</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="groupPname">&nbsp;&nbsp;管理机构:</label>
+                                <div class="input-group">
+                                    <input type="hidden" id="groupPid" name="groupId" class="form-control" valid="r" validTitle="管理机构" validInfoArea="groupId_info_area" />
+                                    <input type="text" id="groupPname" name="groupName" placeholder="请选择管理机构" class="form-control" valid="r" validTitle="管理机构" validInfoArea="groupId_info_area" />
+                                <span class="input-group-btn">
+                                    <a id="selectManageGroup" class="btn btn-primary" style="margin-bottom: 0px;"><i class="fa fa-plus"></i></a>
+                                </span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="startDate">&nbsp;&nbsp;日期范围:</label>
+                                <input type="text" id="startDate" name="startDate" class="form-control" placeholder="开始时间"/>-
+                                <input type="text" id="endDate" name="endDate" class="form-control" placeholder="结束时间"/>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="executorName">&nbsp;&nbsp;姓名:</label>
+                                <input type="text" id="executorName" name="executorName" class="form-control" placeholder="填写姓名"/>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="companyName">&nbsp;&nbsp;企业:</label>
+                                <input type="text" id="companyName" name="companyName" class="form-control" placeholder="填写企业名称"/>
+                            </div>
+
+                            <a class="search-btn btn btn-success" style="margin-bottom: 0px;">查询</a>
+                            <button class="btn btn-default" type="reset" style="margin-bottom: 0px;">重置</button>
+                        </form>
+                    </div>
+                </div>
+                <!-- END 查询表单 -->
+
+                <!-- START 操作按钮 -->
+                <div id="toolbar" style="margin-bottom:5px;">
+                  <a class="export-btn btn btn-sm btn-primary "><i class="fa fa-long-arrow-up"></i> 导出</a>
+                  <a class="import-btn btn btn-sm btn-primary " href="/scheduletable/calendarmode.do"><i class="fa fa-long-arrow-down"></i> 日历模式</a>
+                  <a class="add-btn btn btn-sm btn-success"><i class="fa fa-plus" aria-hidden="true"></i> 工作量统计</a>
+                </div>
+                <!-- END 操作按钮 -->
+
+                <!-- START 数据表格 -->
+                <table id="scheduletable"
+                       data-toolbar="#toolbar"
+                       data-side-pagination="server"
+                       data-pagination="true"
+                       data-resizable="true"
+                       data-side-pagination="server"
+                       data-url="/extract/executor/findall.do?groupId=${groupId}"
+                       data-page-size="15">
+                </table>
+                <!-- END 数据表格 -->
+                
+            <!-- END 右侧数据 -->
+            <div style="display: none;">
+                <div id="export-html" class="row">
+                    <form class="form-horizontal" id="export-form" method="post">
+                        <div class="form-group">
+                            <div class="col-sm-4 control-label text-right"></div>
+                            <div class="col-sm-6 text-left">
+                                <div class="checkbox checkbox-primary">
+                                    <input type="checkbox" id="exportRecordNo" name="cols" class="checked-month" value="recordNo" valid="r"/>
+                                    <label for="exportRecordNo"> 编号 </label>
+                                </div>
+                                <div class="checkbox checkbox-primary">
+
+                                    <input type="checkbox" id="exportExecutorName" name="cols" class="checked-month" value="executorName" valid="r"/>
+                                    <label for="exportExecutorName"> 姓名 </label>
+                                </div>
+                                <div class="checkbox checkbox-primary">
+
+                                    <input type="checkbox" id="exportCompanyName" name="cols" class="checked-month" value="companyName" valid="r"/>
+                                    <label for="exportCompanyName"> 企业名称 </label>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-10 text-center">
+                                <button type="button" class="doexport-btn btn btn-primary">
+                                    <i class="fa fa-save"></i> 导出
+                                </button>
+                                <button type="button" class="close-btn btn btn-warning">
+                                    <i class="fa fa-replay"></i> 关闭
+                                </button>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,content,bootstrap-table,bootstrap-table-zh-CN,layer,laydate'}){}%>
+
+    <script>
+    var $scheduletable = $('#scheduletable'),selections=[],manageGroupId = 20;
+    $(function(){
+
+        //START 表格配置
+        $scheduletable.bootstrapTable({
+            height: getHeight(),
+            columns: [
+                {
+                    field: 'state',
+                    checkbox: true,
+                    align: 'center',
+                    valign: 'middle'
+                },
+                {
+                    title: '编号',
+                    field: 'recordNo',
+                    align: 'left',
+                    valign: 'middle'
+                },
+                {
+                    title: '年度',
+                    field: 'year',
+                    align: 'left',
+                    valign: 'middle'
+                },
+                {
+                    title: '管理部门',
+                    field: 'groupName',
+                    align: 'left',
+                    valign: 'middle'
+                },
+                {
+                    title: '企业名称',
+                    field: 'companyName',
+                    align: 'left',
+                    valign: 'middle'
+                },
+                {
+                    title: '监察人员',
+                    field: 'executorName',
+                    align: 'left',
+                    valign: 'middle'
+                },{
+                    title: '企业类型',
+                    field: 'companyType',
+                    align: 'left',
+                    valign: 'middle',
+                    formatter: function (v,r) {
+                        return v == 1?'重点':'一般';
+                    }
+                },
+                {
+                    title: '检查日期',
+                    field: 'checkDate',
+                    align: 'left',
+                    valign: 'middle',
+                    formatter: function (v,r) {
+                        return v.substring(0,11)
+                    }
+                },
+                {
+                    field: 'operate',
+                    title: '结果上报',
+                    width: 200,
+                    align: 'center',
+                    valign: 'middle',
+                    formatter: optFormatter
+                }
+            ],
+            onLoadSuccess : function(){
+                //查看执法反馈详情
+                $('.view-feedback-btn').on('click',function(){
+                    var id = $(this).attr('data-val');
+                    layer.open({
+                        title: '执法反馈详情',
+                        type: 2,
+                        area: ['780px', '400px'],
+                        content: ['/execute/feedback/detail.do?id='+id, 'no']
+                    });
+                });
+
+
+            }
+        });
+        //END 表格配置
+        
+        //选择管理机构
+        $('#selectManageGroup').on('click',function(){
+            var gid = $('#groupPid').val();
+            layer.open({
+                title: '选择管理机构',
+                type: 2,
+                area: ['300px', '550px'],
+                skin: 'layer-ext-espresso',
+                content: ['/power/group/selecttree.do?mt=n&blimit=y&gid='+gid, 'yes']
+            });
+        });
+
+        var qStart = {
+            elem: '#startDate',
+            event: 'focus',
+            min: '2015-01-01',
+            max: '2099-06-16 23:59:59',
+            choose: function (datas) {
+                qEnd.min = datas;
+                qEnd.start = datas;
+            }
+        };
+        var qEnd = {
+            elem: '#endDate',
+            event: 'focus',
+            min: '2015-01-01',
+            max: '2099-06-16 23:59:59',
+            choose: function (datas) {
+                qStart.max = datas;
+            }
+        }
+
+        laydate(qStart);
+        laydate(qEnd);
+
+
+        //查询
+        $('.search-btn').on('click',function(){
+            $scheduletable.bootstrapTable('refresh',{ url: '/extract/executor/findall.do?'+$('#search-form').serialize() });
+        });
+
+        //导出
+        $('.export-btn').on('click',function(){
+            $('#export-html').parent().show();
+            layer.open({
+                title: '选择导出项',
+                type: 1,
+                scrollbar: false ,
+                area: ['300px', '250px'],
+                skin: 'layer-ext-espresso',
+                content: $('#export-html')
+
+            });
+        });
+
+        $('.doexport-btn').on('click',function(){
+            location.href = '/scheduletable/export.do?'+$('#export-form').serialize();
+        });
+        
+        //表格高度自适应
+        $(window).resize(function () {
+            $scheduletable.bootstrapTable('resetView', {
+                height: getHeight()
+            });
+        });
+    });
+
+    //操作菜单
+    function optFormatter(value,row){
+        console.log(row);
+        var content = '未上报';
+        if( row.executeFeedback ){
+            content = '<a class="view-feedback-btn btn btn-xs btn-success" data-val="'+row.executeFeedback.id+'" title="查看反馈信息"><i class="fa fa-edit"></i>  查看</a>';
+        }
+        return content;
+    }
+    
+    //表格高度计算
+    function getHeight() {
+        return $(window).height() - $('.btn-group').outerHeight(true) - $('.breadcrumb').outerHeight(true) - $('.ibox').outerHeight(true) - 40;
+    }
+    </script>
+  </body>
+</html>

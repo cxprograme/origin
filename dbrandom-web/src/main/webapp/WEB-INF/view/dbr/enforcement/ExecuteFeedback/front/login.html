@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'执法人员登录',styles:'bootstrap,font-awesome,animate,style'}){}%>
+</head>
+
+<body class="gray-bg">
+
+<div class="middle-box text-center loginscreen  animated fadeInDown">
+    <div>
+        <div>
+            <h1 class="logo-name" style="font-size: 80px;">执法反馈</h1>
+        </div>
+        <h4 id="error-tip"></h4>
+        <form id="login-form" class="m-t">
+            <div class="form-group">
+                <input type="text" id="recordno" name="recordno" class="form-control" placeholder="任务编号" required="">
+            </div>
+            <div class="form-group">
+                <input type="text" id="mobile" name="mobile" class="form-control" placeholder="手机号码" required="">
+            </div>
+            <button type="button" class="login-btn btn btn-primary block full-width m-b">登 录</button>
+
+        </form>
+    </div>
+</div>
+
+<%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,layer'}){}%>
+<script>
+    var $recordNo = $('#recordno'), $mobile = $('#mobile');
+    $(function(){
+        $('.login-btn').on('click',function(){
+
+            if($.trim($recordNo.val()) != '' && $.trim($mobile.val()) ){
+                doLogin();
+            }else {
+                alert('任务编号或手机号码不能为空!');
+            }
+
+        });
+
+        $(document).keyup(function(e){
+            var curKey = e.which;
+            if(curKey == 13){
+                if($.trim($recordNo.val()) != '' && $.trim($mobile.val()) ){
+                    doLogin();
+                }else {
+                    alert('任务编号或手机号码不能为空!');
+                }
+            }
+        });
+
+        //用户登录
+        function doLogin(){
+            layer.load();
+            $('#error-tip').html('<span class="label label-info">登录中,请稍后...</span>');
+            $.post('/feedback/login.do',$('#login-form').serialize(),function(data){
+                if( data.ok ){
+                    $('#error-tip').html('<span class="label label-success">'+data.msg+'</span>');
+                    location.href = '/feedback/fillpage.do?rno='+data.data;
+                }else{
+                    $('#error-tip').html('<span class="label label-warning">'+data.msg+'</span>');
+                }
+            },'json');
+            layer.closeAll('loading');
+        }
+    });
+</script>
+</body>
+
+</html>

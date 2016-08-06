@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+      <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'数据字典详情信息', styles:'bootstrap,font-awesome,animate,style,bootstrap-table'}){}%>
+  </head>
+
+  <body>
+
+    <div class="wrapper wrapper-content">
+      <div class="row">
+        <div class="col-sm-12">
+            <!-- START 右侧数据 -->
+                <!-- START 操作按钮 -->
+                <div id="toolbar" class="btn-group" style="margin-bottom:5px;">
+                  <button type="button" class="add-btn btn btn-sm btn-success"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 新增</button>
+                  <button type="button" class="del-btn btn btn-sm btn-danger"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> 删除</button>
+                </div>
+                <!-- END 操作按钮 -->
+                
+                <!-- START 数据表格 -->
+                <table id="dictdetailtable"
+                           data-toolbar="#toolbar"
+                           data-side-pagination="server"
+                           data-pagination="true"
+                           data-resizable="true"
+                           data-show-columns="true"
+                           data-show-toggle="true"
+                           data-side-pagination="server"
+                           data-url="/dictdetail/info/findall.do"
+                           data-page-size="15">
+                </table>
+                <!-- END 数据表格 -->
+                
+            <!-- END 右侧数据 -->
+        </div>
+      </div>
+    </div>
+
+    <%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,bootstrap-table,bootstrap-table-zh-CN,layer'}){}%>
+
+    <script>
+    var $dictdetailtable = $('#dictdetailtable'),selections=[];
+    $(function(){
+        
+        //START 表格配置
+        $dictdetailtable.bootstrapTable({
+            height: getHeight(),
+            columns: [
+                    {
+                        field: 'state',
+                        checkbox: true,
+                        align: 'center',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '',
+                        field: 'id',
+                        align: 'left',
+                        valign: 'middle',
+                        visible: false
+                    },
+                    {
+                        title: '所属分类',
+                        field: 'dictType',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '名称',
+                        field: 'detailName',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '编码',
+                        field: 'detailCode',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '排序号',
+                        field: 'detailSort',
+                        align: 'left',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                    {
+                        title: '类型',
+                        field: 'detailType',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '状态',
+                        field: 'detailState',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '内容',
+                        field: 'detailContent',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '备注',
+                        field: 'detailRemark',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '创建时间',
+                        field: 'createDate',
+                        align: 'left',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                    {
+                        title: '修改时间',
+                        field: 'modifyDate',
+                        align: 'left',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        width: 200,
+                        align: 'center',
+                        valign: 'middle',
+                        formatter: optFormatter
+                    }
+            ],
+            onLoadSuccess : function(){
+                //修改数据字典详情信息
+                $('.edit-dictdetail-btn').on('click',function(){
+                    var dictdetailid = $(this).attr('data-val');
+                    layer.open({
+                        title: '修改字典详情',
+                        type: 2,
+                        area: ['780px', '500px'],
+                        content: ['/dictdetail/info/editpage.do?id='+dictdetailid, 'no']
+                    });
+                });
+            
+                //删除数据字典详情信息
+                $('.del-dictdetail-btn').on('click',function(){
+                    var delid = $(this).attr('data-val'),delname = $(this).attr('data-val-name');
+                    //删除提示
+                    layer.confirm('确定要删除当前字典项？<br>['+delname+']', {
+                        btn: ['确定','取消'],title:'提示'
+                    }, function(){
+                        $.post('/dictdetail/info/delete.do',{ids: delid},function(data){
+                            if( data.ok ){
+                                layer.msg(data.msg,{icon: 1,time: 1500},function(){
+                                    //刷新页面
+                                    $dictdetailtable.bootstrapTable('refresh');
+                                });
+                            }else{
+                                layer.msg(data.msg,{icon: 0,time: 1500});
+                            }
+                        });
+                    });
+                });
+                
+            }
+        });
+        //END 表格配置
+        
+        //新增数据字典详情信息
+        $('.add-btn').on('click',function(){//新增
+            layer.open({
+                title: '新增字典详情',
+                type: 2,
+                area: ['790px', '500px'],
+                skin: 'layer-ext-espresso', 
+                content: ['/dictdetail/info/addpage.do', 'no']
+            });
+        });
+        
+        //删除数据字典详情信息
+        $('.del-btn').on('click',function(){
+            var selDatas = $dictdetailtable.bootstrapTable('getSelections');
+            if( selDatas.length == 0 ){
+                layer.msg('请选择要删除的数据字典详情信息',{icon: 0,shade: [0.8, '#393D49'],time: 1500});
+            }else{
+                var ids = [],names = [];
+                $.each(selDatas,function(i,d){
+                    ids.push(d.id);
+                    names.push(d.detailName);
+                });
+                ids = ids.join(',');
+                names = names.join(',');
+
+                layer.confirm('确定要删除这些字典项？<br>['+names+']', {
+                    btn: ['确定','取消'],title:'提示'
+                }, function(){
+                    $.post('/dictdetail/info/delete.do',{ids: ids},function(data){
+                        if( data.ok ){
+                            layer.msg(data.msg,{icon: 1,time: 1500},function(){
+                                //刷新页面
+                                $dictdetailtable.bootstrapTable('refresh');
+                            });
+                        }else{
+                            layer.msg(data.msg,{icon: 0,time: 1500});
+                        }
+                    });
+                });
+
+            }
+        });
+        
+        //表格高度自适应
+        $(window).resize(function () {
+            $dictdetailtable.bootstrapTable('resetView', {
+                height: getHeight()
+            });
+        });
+    });
+    
+    //操作菜单
+    function optFormatter(value,row){
+        var content = '<button class="edit-dictdetail-btn btn btn-xs btn-info" data-val="'+row.id+'" title="修改"><i class="fa fa-edit"></i>  </button>';
+        content += '&nbsp;<button class="del-dictdetail-btn btn btn-xs btn-danger" data-val="'+row.id+'" title="删除"><i class="fa fa-trash-o"></i>  </button>';
+        return content;
+    }
+    
+    //表格高度计算
+    function getHeight() {
+        return $(window).height() - $('.btn-group').outerHeight(true) - $('.breadcrumb').outerHeight(true) - 100;
+    }
+    </script>
+  </body>
+</html>

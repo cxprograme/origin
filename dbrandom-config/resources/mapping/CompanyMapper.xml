@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.dbr.manageobj.mapper.CompanyMapper">
+
+    <!-- 返回结果集映射 企业单位基本信息 -->
+    <resultMap type="company" id="companyMap">
+        <!-- 企业编号 -->
+        <id column="id" property="id"/>
+        <!-- 企业名称 -->
+        <result column="name" property="name"/>
+        <!-- 分类属性编号 -->
+        <result column="type" property="type"/>
+        <!-- 企业所属行业 -->
+        <result column="trade" property="trade"/>
+        <!-- 环保负责人 -->
+        <result column="ev_manager" property="evManager"/>
+        <!-- 联系手机 -->
+        <result column="mobile" property="mobile"/>
+        <!-- 联系固定电话 -->
+        <result column="phone" property="phone"/>
+        <!-- 创建时间 -->
+        <result column="create_date" property="createDate"/>
+        <!-- 修改时间 -->
+        <result column="modify_date" property="modifyDate"/>
+        <!-- 删除标志 -->
+        <result column="deleted" property="deleted"/>
+        <!-- 联系地址 -->
+        <result column="address" property="address"/>
+        <!-- 管理机构编号 -->
+        <result column="group_id" property="groupId"/>
+        <!-- 管理机构名称 -->
+        <result column="group_name" property="groupName"/>
+
+    </resultMap>
+
+    <!-- 包含下级节点信息的Map -->
+    <resultMap id="companyWithPointsMap" type="company" extends="companyMap">
+        <collection property="companyPoints" ofType="companyPoint" column="{company_id=id,group_id=group_id}" select="selectPoints"/>
+    </resultMap>
+
+    <resultMap type="companyPoint" id="companyPointMap">
+        <!-- 点位编号 -->
+        <id column="id" property="id"/>
+        <!-- 所属企业编号 -->
+        <result column="company_id" property="companyId"/>
+        <!-- 所属管理机构编号 -->
+        <result column="group_id" property="groupId"/>
+        <!-- 点位名称 -->
+        <result column="point_name" property="pointName"/>
+        <!-- 点位描述 -->
+        <result column="point_desc" property="pointDesc"/>
+        <!-- 创建时间 -->
+        <result column="create_date" property="createDate"/>
+        <!-- 修改时间 -->
+        <result column="modify_date" property="modifyDate"/>
+        <!-- 删除标志 -->
+        <result column="deleted" property="deleted"/>
+        <!-- 排序号 -->
+        <result column="order_id" property="orderId"/>
+    </resultMap>
+
+    <!-- 企业单位基本信息 表名定义 -->
+    <sql id="tableName">t_company</sql>
+
+    <!-- 企业单位基本信息 所有列定义 -->
+    <sql id="tbAllColumns">
+		id,
+		name,
+		trade,
+		ev_manager,
+		mobile,
+		phone,
+		create_date,
+		modify_date,
+		deleted,
+		address
+	</sql>
+
+    <sql id="tbFullColumns">
+		tba.id,
+		tba.name,
+        tbc.group_name,
+		tbb.company_type AS type,
+		tba.trade,
+		tba.ev_manager,
+		tba.mobile,
+		tba.phone,
+		tba.create_date,
+		tba.modify_date,
+		tba.deleted,
+		tba.address,
+		tbb.group_id
+	</sql>
+
+    <!-- 企业单位基本信息 新增列定义 -->
+    <sql id="tbInsertColumns">
+		name,
+		trade,
+		ev_manager,
+		mobile,
+		phone,
+		create_date,
+		modify_date,
+		deleted,
+		address
+	</sql>
+
+    <!-- 新增 企业单位基本信息-->
+    <insert id="insert" parameterType="company" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES(
+        #{name},
+        #{trade},
+        #{evManager},
+        #{mobile},
+        #{phone},
+        sysdate(),
+        #{modifyDate},
+        0,
+        #{address}
+        )
+    </insert>
+
+    <!-- 批量新增 企业单位基本信息-->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.name},
+            #{item.trade},
+            #{item.evManager},
+            #{item.mobile},
+            #{item.phone},
+            sysdate(),
+            #{item.modifyDate},
+            0,
+            #{item.address}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改 企业单位基本信息-->
+    <update id="update" parameterType="company">
+        UPDATE
+        <include refid="tableName"/>
+        <set>
+            <if test="name != null and name !=''">name = #{name},</if>
+            <if test="trade != null and trade !=''">trade = #{trade},</if>
+            <if test="evManager != null and evManager !=''">ev_manager = #{evManager},</if>
+            <if test="mobile != null and mobile !=''">mobile = #{mobile},</if>
+            <if test="phone != null and phone !=''">phone = #{phone},</if>
+            <if test="createDate != null">create_date = #{createDate},</if>
+            <if test="modifyDate != null ">modify_date = #{modifyDate},</if>
+            <if test="deleted != null and deleted !=''">deleted = #{deleted},</if>
+            <if test="address != null and address !=''">address = #{address}</if>
+        </set>
+        WHERE
+        id = #{id}
+    </update>
+
+    <!-- 删除 企业单位基本信息-->
+    <delete id="delete" parameterType="int">
+        UPDATE
+        <include refid="tableName"/>
+        SET
+        deleted = 1
+        WHERE
+        id = #{id}
+    </delete>
+
+
+    <!-- 批量删除 企业单位基本信息-->
+    <delete id="deleteByIds" parameterType="list">
+        UPDATE
+        <include refid="tableName"/>
+        SET
+        deleted = 1
+        WHERE
+        id IN
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <!-- 查询指定企业单位基本信息 -->
+    <select id="queryByCompanyId" parameterType="Integer" resultMap="companyMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE tba.id = #{id}
+    </select>
+
+    <!-- 查询指定企业单位基本信息 -->
+    <select id="queryByCompanyAndGroupId" resultMap="companyMap">
+        SELECT
+        <include refid="tbFullColumns"/>
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN t_company_manage_config tbb ON tbb.company_id = tba.id
+        LEFT JOIN power_group tbc ON tbc.group_id = tbb.group_id
+        WHERE tba.id = #{companyId} AND tbb.group_id = #{groupId}
+    </select>
+
+
+    <!-- 查询所有企业单位基本信息 -->
+    <select id="queryAllCompany" resultMap="companyMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE deleted = 0
+    </select>
+
+
+    <!-- 多条件 查询企业单位基本信息 -->
+    <select id="queryByCnd" resultMap="companyMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE deleted = 0
+        <if test="id != null and id !=''">AND id = #{id}</if>
+        <if test="name != null and name !=''">AND name = #{name}</if>
+        <if test="trade != null and trade !=''">AND trade = #{trade}</if>
+        <if test="evManager != null and evManager !=''">AND ev_manager = #{evManager}</if>
+        <if test="mobile != null and mobile !=''">AND mobile = #{mobile}</if>
+        <if test="phone != null and phone !=''">AND phone = #{phone}</if>
+        <if test="createDate != null">AND create_date = #{createDate}</if>
+        <if test="modifyDate != null">AND modify_date = #{modifyDate}</if>
+        <if test="address != null and address !=''">AND address = #{address}</if>
+    </select>
+
+    <!-- 查询指定管理机构下所有企业 -->
+    <select id="queryByCndWithGroup" resultMap="companyWithPointsMap">
+        SELECT
+        <include refid="tbFullColumns"/>
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN t_company_manage_config tbb ON tbb.company_id = tba.id
+        LEFT JOIN power_group tbc ON tbc.group_id = tbb.group_id
+        WHERE tba.deleted = 0
+        <if test="id != null">AND tba.id = #{id}</if>
+        <if test="name != null and name !=''">AND tba.name = #{name}</if>
+        <if test="searchName != null and searchName !=''">AND tba.name LIKE CONCAT('%',#{searchName},'%') </if>
+        <if test="trade != null and trade !=''">AND tba.trade = #{trade}</if>
+        <if test="evManager != null and evManager !=''">AND tba.ev_manager = #{evManager}</if>
+        <if test="mobile != null and mobile !=''">AND tba.mobile = #{mobile}</if>
+        <if test="phone != null and phone !=''">AND tba.phone = #{phone}</if>
+        <if test="address != null and address !=''">AND tba.address = #{address}</if>
+        <if test="groupId != null">AND tbb.group_id = #{groupId}</if>
+        <if test="type != null">AND tbb.company_type = #{type}</if>
+    </select>
+
+    <!-- 查询指定管理机构下所有企业(不含下级位点) -->
+    <select id="queryByCndWithGroupNoPoints" resultMap="companyMap">
+        SELECT
+        <include refid="tbFullColumns"/>
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN t_company_manage_config tbb ON tbb.company_id = tba.id
+        LEFT JOIN power_group tbc ON tbc.group_id = tbb.group_id
+        WHERE tba.deleted = 0
+        <if test="id != null and id !=''">AND tba.id = #{id}</if>
+        <if test="name != null and name !=''">AND tba.name = #{name}</if>
+        <if test="searchName != null and searchName !=''">AND tba.name LIKE CONCAT('%',#{searchName},'%') </if>
+        <if test="trade != null and trade !=''">AND tba.trade = #{trade}</if>
+        <if test="evManager != null and evManager !=''">AND tba.ev_manager = #{evManager}</if>
+        <if test="mobile != null and mobile !=''">AND tba.mobile = #{mobile}</if>
+        <if test="phone != null and phone !=''">AND tba.phone = #{phone}</if>
+        <if test="address != null and address !=''">AND tba.address = #{address}</if>
+        <if test="groupId != null">AND tbb.group_id = #{groupId}</if>
+        <if test="type != null">AND tbb.company_type = #{type}</if>
+    </select>
+
+    <!-- 嵌套查询下级位点 -->
+    <select id="selectPoints" resultMap="companyPointMap">
+        SELECT
+        *
+        FROM
+        t_company_point
+        WHERE company_id = #{company_id} AND group_id = #{group_id}
+    </select>
+
+</mapper>

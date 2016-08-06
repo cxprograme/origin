@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.core.power.mapper.PowerPermissionMapper">
+
+    <!-- 返回结果集映射 权限信息表 -->
+    <resultMap type="powerPermission" id="powerPermissionMap">
+        <!-- 权限编号 -->
+        <id column="permission_id" property="id"/>
+        <!-- 权限名称 -->
+        <result column="permission_name" property="permissionName"/>
+        <!-- 权限类型 -->
+        <result column="permission_type" property="permissionType"/>
+        <!-- 授权对象编号 -->
+        <result column="privilege_id" property="privilegeId"/>
+        <!-- 权限编码 -->
+        <result column="permission_code" property="permissionCode"/>
+        <!-- 删除标志 -->
+        <result column="deleted" property="deleted"/>
+        <!-- 创建时间 -->
+        <result column="create_date" property="createDate"/>
+        <!-- 更新时间 -->
+        <result column="modify_date" property="modifyDate"/>
+        <!-- 排序号 -->
+        <result column="order_id" property="orderId"/>
+    </resultMap>
+
+    <!-- 权限信息表 表名定义 -->
+    <sql id="tableName">power_permission</sql>
+
+    <!-- 权限信息表 所有列定义 -->
+    <sql id="tbAllColumns">
+		permission_id,
+		permission_name,
+		permission_code,
+		permission_type,
+		privilege_id,
+		deleted,
+		create_date,
+		modify_date,
+		order_id
+	</sql>
+
+    <!-- 权限信息表 新增列定义 -->
+    <sql id="tbInsertColumns">
+		permission_name,
+		permission_code,
+		permission_type,
+		privilege_id,
+		deleted,
+		create_date,
+		modify_date,
+		order_id
+	</sql>
+
+    <!-- 新增 权限信息表-->
+    <insert id="insert" parameterType="powerPermission" useGeneratedKeys="true" keyColumn="permission_id"
+            keyProperty="id">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES(
+        #{permissionName},
+        #{permissionCode},
+        #{permissionType},
+        #{privilegeId},
+        0,
+        sysdate(),
+        #{modifyDate},
+        #{orderId}
+        )
+    </insert>
+
+    <!-- 批量新增 权限信息表-->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.permissionName},
+            #{item.permissionCode},
+            #{item.permissionType},
+            #{item.privilegeId}
+            0,
+            sysdate(),
+            #{item.modifyDate},
+            #{item.orderId}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 新增 角色与权限关系信息-->
+    <insert id="insertRelRolePermission" parameterType="relRolePermission">
+		INSERT INTO
+			rel_role_permission
+		(role_id, permission_id)
+		VALUES
+		(
+		#{roleId},
+		#{permissionId}
+		)
+	</insert>
+
+    <!-- 批量新增 角色与权限关系信息-->
+    <insert id="batchInsertRelRolePermission" parameterType="list">
+        INSERT INTO
+        rel_role_permission
+        (role_id, permission_id)
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.roleId},
+            #{item.permissionId}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改 权限信息表-->
+    <update id="update" parameterType="powerPermission">
+        UPDATE
+        <include refid="tableName"/>
+        <set>
+            <if test="permissionName != null ">permission_name = #{permissionName},</if>
+            <if test="permissionCode != null and permissionCode !=''">permission_code = #{permissionCode},</if>
+            <if test="orderId != null and orderId !=''">order_id = #{orderId},</if>
+            modify_date = sysdate()
+        </set>
+        WHERE
+        permission_id = #{id}
+    </update>
+
+    <!-- 删除 权限信息表-->
+    <delete id="delete" parameterType="long">
+        UPDATE
+        <include refid="tableName"/>
+        SET
+        deleted = 1
+        WHERE
+        permission_id = #{id}
+    </delete>
+
+
+    <!-- 批量删除 权限信息表-->
+    <delete id="deleteByIds" parameterType="list">
+        UPDATE
+        <include refid="tableName"/>
+        SET
+        deleted = 1
+        WHERE
+        permission_id IN
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <!-- 删除角色与权限关联 根据角色ID -->
+    <delete id="deleteRelRolePermissionByRoleId" parameterType="long">
+		DELETE FROM
+			rel_role_permission
+		WHERE
+			role_id = #{roleId}
+	</delete>
+
+    <!-- 删除角色与权限关联 根据权限ID -->
+    <delete id="deleteRelRolePermissionByPermissionId" parameterType="long">
+		DELETE FROM
+			rel_role_permission
+		WHERE
+            permission_id = #{permissionId}
+	</delete>
+
+
+    <!-- 查询指定权限信息表 -->
+    <select id="queryByPermissionId" parameterType="long" resultMap="powerPermissionMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE permission_id = #{id}
+    </select>
+
+    <!-- 查询所有权限信息表 -->
+    <select id="queryAllPermission" resultMap="powerPermissionMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE deleted = 0
+        ORDER BY order_id ASC
+    </select>
+
+    <!-- 查询指定类型的权限信息 -->
+    <select id="queryByPermissionType" resultMap="powerPermissionMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE permission_type = #{permissionType} AND deleted = 0
+        ORDER BY order_id ASC
+    </select>
+
+    <!-- 查询指定用户的权限信息 -->
+    <select id="queryByUserId" resultMap="powerPermissionMap">
+        SELECT tba.*
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN rel_role_permission tbb ON tbb.permission_id = tba.permission_id
+        LEFT JOIN rel_user_role tbc ON tbc.role_id = tbb.role_id
+        WHERE tbc.user_id =#{userId}
+        <if test="permissionType != -1">
+            AND tba.permission_type = #{permissionType}
+        </if>
+        AND tba.deleted = 0
+        ORDER BY tba.order_id ASC
+    </select>
+
+    <!-- 查询指定角色的权限信息 -->
+    <select id="queryByRoleId" resultMap="powerPermissionMap" useCache="false">
+        SELECT tba.*
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN rel_role_permission tbb ON tbb.permission_id = tba.permission_id
+        WHERE tbb.role_id =#{roleId}
+        <if test="permissionType != -1">
+            AND tba.permission_type = #{permissionType}
+        </if>
+        AND tba.deleted = 0
+        ORDER BY tba.order_id ASC
+    </select>
+
+</mapper>

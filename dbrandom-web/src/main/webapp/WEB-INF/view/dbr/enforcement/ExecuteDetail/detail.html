@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+	  <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'执法反馈详情以及处理情况', styles:'bootstrap,font-awesome,animate,style,dtvalidate'}){%>
+	  <style type="text/css">
+		  body{padding-top:10px;}
+	  </style>
+	  <%}%>
+  </head>
+  <body>
+	<!-- START 内容部分 -->
+	<div class="container">
+		<!-- 任务基本信息 -->
+		<h2>任务基本情况</h2>
+		<table class="table">
+			<tr>
+				<td width="100" class="text-right">企业名称：</td>
+				<td>${feedbackDetail.companyName}</td>
+			</tr>
+			<tr>
+				<td class="text-right">检查日期：</td>
+				<td>${feedbackDetail.checkDate,dateFormat="yyyy-MM-dd"}</td>
+			</tr>
+			<tr>
+				<td class="text-right">检查人员：</td>
+				<td>${feedbackDetail.executorName}</td>
+			</tr>
+			<tr>
+				<td class="text-right">检查结果：</td>
+				<td><%
+					for(var dict in dictFun("deal_status","")){
+						if( parseInt(dict.detailCode) == feedbackDetail.executeFeedback.processStatus){
+					%>
+					${dict.detailName}
+					<%
+						}
+					%>
+					<%}%></td>
+			</tr>
+			<tr>
+				<td class="text-right">附件：</td>
+				<td><%for(var file in feedbackDetail.executeFeedback.attachFile){%>
+					${file.fileRealName}
+					<%}%>
+				</td>
+			</tr>
+			<tr>
+				<td class="text-right">检查内容：</td>
+				<td>${feedbackDetail.executeFeedback.checkContent}</td>
+			</tr>
+		</table>
+
+		<!-- 分发处理情况 -->
+		<h2>分发处理情况</h2>
+		<table class="table table-bordered">
+			<tr>
+				<th>日期</th>
+				<th>管理机构</th>
+				<th>意见</th>
+			</tr>
+			<%for(var detail in dealDetail){%>
+			<tr>
+				<td>${detail.createDate,dateFormat="yyyy-MM-dd"}</td>
+				<td>${detail.distributeGroupName}</td>
+				<td>${detail.distributeDetail}</td>
+			</tr>
+			<%if(!isEmpty(detail.executeDetail)){%>
+			<tr>
+				<td>${detail.modifyDate,dateFormat="yyyy-MM-dd"}</td>
+				<td>${detail.executeGroupName}</td>
+				<td>${detail.executeDetail}</td>
+			</tr>
+			<%}}%>
+		</table>
+		<form class="form-horizontal" id="info-form" method="post">
+			<input type="hidden" name="status" value="1"/>
+			<input type="hidden" name="feedbackId" value="${feedback.id}"/>
+			<%
+			var isSelfDeal = true;
+			for(var detail in dealDetail){
+				isSelfDeal = false;
+			%>
+			<input type="hidden" name="id" value="${detail.id}"/>
+			<%}%>
+			<%if(isSelfDeal){%>
+			<input type="hidden" name="executeGroupId" value="${groupId}">
+			<input type="hidden" name="distributeGroupId" value="${groupId}">
+			<%}%>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">处理意见</label>
+				<div class="col-sm-6">
+					<textarea id="executeDetail" name="executeDetail" class="form-control" valid="r" validTitle="处理意见" validInfoArea="executeDetail_info_area" rows="6"></textarea>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="executeDetail_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-offset-2 col-sm-10">
+					<button type="button" class="save-btn btn btn-primary">
+						<i class="fa fa-save"></i> 办理
+					</button>
+					<button type="button" class="back-btn btn btn-warning">
+						<i class="fa fa-reply"></i> 返回
+					</button>
+				</div>
+			</div>
+		</form>
+	</div>
+	<!-- END 内容部分 -->
+	
+	<!-- START 公共脚本 -->
+    <%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,dtvalidate,dtvalidate-lang-zh_cn'}){}%>
+	<!-- END 公共脚本 -->
+	<script>
+	var cvalidator;
+	$(function(){
+		//初始化验证器
+		cvalidator = $('#info-form').dtValidator();
+		
+		//提交表单
+		$('.save-btn').on('click',function(){
+			if(!cvalidator.validResult()){
+				$.fn.DtValidator.tools.toast('验证失败！', 'error', 2000);
+				return;
+			}
+			
+			//数据提交
+			$.post('/execute/detail/<%if(isSelfDeal){print("dealself");}else{print("usave");}%>.do',$('#info-form').serialize(),function(data){
+				if( data.ok ){
+					parent.layer.msg(data.msg,{icon:1,time:1500,shade: [0.8, '#393D49']}, function(){
+						parent.$todotable.bootstrapTable('refresh');
+						parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭弹窗
+					});
+				}else{
+					parent.layer.msg(data.msg,{icon: 0,time:1500,shade: [0.8, '#393D49']});
+				}
+			});
+		});
+
+		$('.back-btn').on('click',function(){
+			location.href = '/execute/detail/main.do';
+		});
+    });
+    </script>
+  </body>
+</html>

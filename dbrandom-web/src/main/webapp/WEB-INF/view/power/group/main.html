@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+   <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'组织机构', styles:'bootstrap,font-awesome,animate,style,bootstrap-table,ztree'}){}%>
+</head>
+
+
+  <body>
+
+  <div class="wrapper wrapper-content">
+              <!-- START 内容部分 -->
+              <div class="row">
+                  <div class="col-md-3">
+                      <div class="panel panel-default">
+                          <div class="panel-heading">组织架构</div>
+                          <div class="panel-body">
+                              <ul id="grouptree" class="ztree"></ul>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="col-md-9">
+                      <!-- START 操作按钮 -->
+                      <div id="toolbar" class="btn-group">
+                          <button type="button" class="add-btn btn btn-sm btn-success"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 新增</button>
+                          <button type="button" class="del-btn btn btn-sm btn-danger"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> 删除</button>
+                      </div>
+                      <!-- END 操作按钮 -->
+
+                      <!-- START 数据表格 -->
+                      <table id="powergrouptable"
+                             data-toolbar="#toolbar"
+                             data-side-pagination="server"
+                             data-pagination="true"
+                             data-resizable="true"
+                             data-show-toggle="true"
+                             data-side-pagination="server"
+                             data-url="/power/group/findall.do"
+                             data-page-size="15">
+                      </table>
+                      <!-- END 数据表格 -->
+                  </div>
+              </div>
+              <!-- END 右侧数据 -->
+              <!-- END 内容部分 -->
+    </div>
+
+
+	<%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,bootstrap-table,bootstrap-table-zh-CN,layer,ztree'}){}%>
+
+    <script>
+    var $powergrouptable = $('#powergrouptable'),selections=[], current_pid = 0,treeObj;
+    $(function(){
+    	
+    	//分类树初始化
+    	var setting = {
+    			callback: {
+    				onClick: onClick
+    			},
+    			data: {
+					simpleData: {
+						enable: true
+					}
+				}
+    	};
+		var zNodes =[
+			<%;
+			for(group in groups){
+				if( groupLP.first ){
+				    print("{ id:"+group.id+", pId:"+group.groupPid+", name:\""+group.groupName+"\", open:true }");
+				}else{
+				    print("{ id:"+group.id+", pId:"+group.groupPid+", name:\""+group.groupName+"\" }");
+				}
+			    if( !groupLP.last ){print(",");}
+			}
+			%>
+        ]
+        treeObj = $.fn.zTree.init($("#grouptree"), setting, zNodes);
+        
+        //START 表格配置
+        $powergrouptable.bootstrapTable({
+            height: getHeight(),
+            columns: [
+                    {
+                        field: 'state',
+                        checkbox: true,
+                        align: 'center',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '编号',
+                        field: 'id',
+                        align: 'left',
+                        valign: 'middle',
+                        width: 50,
+                        sortable: true
+                    },
+                    {
+                        title: '名称',
+                        field: 'groupName',
+                        align: 'left',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                    {
+                        title: '排序号',
+                        field: 'orderId',
+                        align: 'left',
+                        valign: 'middle',
+                        width: 50,
+                        sortable: true
+                    },
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        width: 200,
+                        align: 'center',
+                        valign: 'middle',
+                        formatter: optFormatter
+                    }
+            ],
+            onLoadSuccess : function(){
+                //修改组织机构信息表
+                $('.edit-powergroup-btn').on('click',function(){
+                    var powergroupid = $(this).attr('data-val');
+                    layer.open({
+                        title: '修改组织机构',
+                        type: 2,
+                        area: ['780px', '430px'],
+                        content: ['/power/group/editpage.do?id='+powergroupid, 'no']
+                    });
+                });
+            
+                //删除组织机构信息表
+                $('.del-powergroup-btn').on('click',function(){
+                    var delId = $(this).attr('data-val'),delName = $(this).attr('data-val-name');
+
+                    layer.confirm('确定要删除当机构？<br>['+delName+']', {
+                        btn: ['确定','取消'],title:'提示'
+                    }, function(){
+                        $.post('/power/group/delete.do',{ids: delId},function(data){
+                            if( data.ok ){
+                                layer.msg(data.msg,{icon: 1,time: 2000},function(){
+                                    //刷新页面
+                                    $powergrouptable.bootstrapTable('refresh');
+                                    //刷新组织机构树
+                                    var cnode =  treeObj.getNodesByParam("id", delId, null);
+                                    treeObj.removeNode(cnode[0]);
+                                });
+                            }else{
+                                layer.msg(data.msg,{icon: 0,time: 2000});
+                            }
+                        });
+                    });
+
+                });
+                
+            }
+        });
+        //END 表格配置
+        
+        //新增组织机构信息表
+        $('.add-btn').on('click',function(){//新增
+            layer.open({
+                title: '新增组织机构',
+                type: 2,
+                area: ['790px', '430px'],
+                skin: 'layer-ext-espresso', 
+                content: ['/power/group/addpage.do?pid='+current_pid, 'no']
+            });
+        });
+        
+        //删除组织机构信息表
+        $('.del-btn').on('click',function(){
+            var selDatas = $powergrouptable.bootstrapTable('getSelections');
+            if( selDatas.length == 0 ){
+                layer.msg('请选择要删除的机构',{icon: 0,shade: [0.8, '#393D49'],time: 2000});
+            }else{
+                var ids = [],tids = [],names = [];
+                $.each(selDatas,function(i,d){
+                    ids.push(d.id);
+                    tids.push(d.id);
+                    names.push(d.groupName);
+                });
+                ids = ids.join(',');
+                names = names.join(',');
+
+                layer.confirm('确定要删除这些机构？<br><strong>['+names+']</strong>', {
+                    btn: ['确定','取消'],title:'提示'
+                }, function(){
+                    $.post('/power/group/delete.do',{ids: ids},function(data){
+                        if( data.ok ){
+                            layer.msg(data.msg,{icon: 1,time: 2000},function(){
+                                //刷新页面
+                                $powergrouptable.bootstrapTable('refresh');
+                                for(i=0;i<tids.length;i++){
+                                    //刷新组织机构树
+                                    var cnode =  treeObj.getNodesByParam("id", tids[i], null);
+                                    treeObj.removeNode(cnode[0]);
+                                }
+                            });
+                        }else{
+                            layer.msg(data.msg,{icon: 0,time: 2000});
+                        }
+                    });
+                });
+
+            }
+        });
+        
+        //表格高度自适应
+        $(window).resize(function () {
+            $powergrouptable.bootstrapTable('resetView', {
+                height: getHeight()
+            });
+        });
+    });
+    
+  	//树节点点击事件
+	function onClick(event, treeId, treeNode, clickFlag) {
+		current_pid = treeNode.id;
+		$powergrouptable.bootstrapTable('refresh',{url:'/power/group/findbypid.do?pid='+current_pid});
+	}
+    
+    //操作菜单
+    function optFormatter(value,row){
+        var content = '<button class="edit-powergroup-btn btn btn-xs btn-info" data-val="'+row.id+'" title="编辑"><i class="fa fa-edit"></i>  </button>';
+        content += '&nbsp;<button class="del-powergroup-btn btn btn-xs btn-danger" data-val="'+row.id+'" data-val-name="'+row.groupName+'" title="删除"><i class="fa fa-trash-o"></i>  </button>';
+        return content;
+    }
+    
+    //表格高度计算
+    function getHeight() {
+        return $(window).height() - $('.btn-group').outerHeight(true) - $('.breadcrumb').outerHeight(true) - 100;
+    }
+    </script>
+  </body>
+</html>

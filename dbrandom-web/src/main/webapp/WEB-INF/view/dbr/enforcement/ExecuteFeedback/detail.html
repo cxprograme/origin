@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+	  <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'执法反馈详情', styles:'bootstrap,font-awesome,animate,style'}){%>
+	  <style type="text/css">
+		  body{padding-top:10px;}
+	  </style>
+	  <%}%>
+  </head>
+  <body>
+	<!-- START 内容部分 -->
+	<div class="container">
+		<!-- 任务基本信息 -->
+		<table class="table">
+			<tr>
+				<td width="100" class="text-right">企业名称：</td>
+				<td>${feedback.companyName}</td>
+			</tr>
+			<tr>
+				<td class="text-right">检查日期：</td>
+				<td>${feedback.checkDate,dateFormat="yyyy-MM-dd"}</td>
+			</tr>
+			<tr>
+				<td class="text-right">检查人员：</td>
+				<td>${feedback.executorName}</td>
+			</tr>
+			<tr>
+				<td class="text-right">检查结果：</td>
+				<td><%
+					for(var dict in dictFun("deal_status","")){
+						if( parseInt(dict.detailCode) == feedback.processStatus){
+					%>
+					${dict.detailName}
+					<%
+						}
+					%>
+					<%}%></td>
+			</tr>
+			<tr>
+				<td class="text-right">附件：</td>
+				<td><%for(var file in feedback.attachFile){%>
+					${file.fileRealName}
+					<%}%>
+				</td>
+			</tr>
+			<tr>
+				<td class="text-right" style="vertical-align:top">检查内容：</td>
+				<td style="height:100px;vertical-align:top;">${feedback.checkContent}</td>
+			</tr>
+		</table>
+
+		<div class="row">
+			<div class="col-md-12 text-center">
+				<a type="button" class="back-btn btn btn-warning"><i class="fa fa-reply"></i> 关闭</a>
+			</div>
+		</div>
+	</div>
+	<!-- END 内容部分 -->
+	
+	<!-- START 公共脚本 -->
+    <%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap'}){}%>
+	<!-- END 公共脚本 -->
+	<script>
+	var cvalidator;
+	$(function(){
+
+		$('.back-btn').on('click',function(){
+			parent.layer.closeAll();
+		});
+    });
+    </script>
+  </body>
+</html>

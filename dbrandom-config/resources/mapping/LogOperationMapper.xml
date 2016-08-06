@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.dbr.sysconfig.mapper.LogOperationMapper">
+
+    <!--返回结果集映射 日志配置信息-->
+    <resultMap  type="logOperation" id="logOperationMap">
+        <!--日志编号-->
+        <id column="id" property="id"/>
+        <!--操作类型-->
+        <result column="op_type" property="opType"/>
+        <!--操作名称-->
+        <result column="op_name" property="opName"/>
+        <!--操作对象编号-->
+        <result column="op_objid" property="opObjId"/>
+        <!--操作描述-->
+        <result column="op_desc" property="opDesc"/>
+        <!--创建时间-->
+        <result column="create_date" property="createDate"/>
+        <!--创建人-->
+        <result column="create_man" property="createMan"/>
+    </resultMap>
+
+    <!--日志配置信息表 表名定义-->
+    <sql id="tableName">t_log_opeartion</sql>
+
+    <!--日志管理信息 所有列定义-->
+    <sql id="tbAllColumns">
+        id,
+        op_type,
+        op_name,
+        op_objid,
+        op_desc,
+        create_date,
+        create_man
+    </sql>
+
+    <!--日志管理 新增列定义-->
+    <sql id="tbInsertColumns">
+        op_type,
+        op_name,
+        op_objid,
+        op_desc,
+        create_date,
+        create_man
+    </sql>
+
+    <!--新增日志管理-->
+    <insert id="insert" parameterType="logOperation" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO
+            t_log_opeartion
+        (
+                op_type,
+                op_name,
+                op_objid,
+                op_desc,
+                create_date,
+                create_man
+        )
+        VALUES(
+              #{opType},
+              #{opName},
+              #{opObjId},
+              #{opDesc},
+              sysdate(),
+              #{createMan}
+        )
+    </insert>
+
+
+    <!-- 查询日志信息 -->
+    <select id="queryAllLogOperation" resultMap="logOperationMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+    </select>
+
+    <!--多条件查询日志信息-->
+    <select id="queryByCnd" resultMap="logOperationMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        <where>
+            <if test="id != null and id !=''">id = #{id}</if>
+            <if test="opType != null and opType!=''">AND op_type = #{opType}</if>
+            <if test="opName != null and opName!=''">AND op_name like concat("%",#{opName},"%")</if>
+            <if test="opObjId != null and opObjId !=''">AND op_objid = #{opObjId}</if>
+            <if test="startTime != null ">AND create_date &gt;= #{startTime}</if>
+            <if test="endTime!=null">AND create_date &lt;=#{endTime}</if>
+            <if test="createMan != null and createMan!=''">AND create_man like concat("%",#{createMan},"%")</if>
+        </where>
+    </select>
+</mapper>
+

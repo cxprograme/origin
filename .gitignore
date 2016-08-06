@@ -1,0 +1,14 @@
+*.class
+*.iml
+.idea/
+*.log
+*.DS_Store
+dbrandom-config/target/
+dbrandom-core/target/
+dbrandom-web/target/
+dbrandom-web/catalina.home_IS_UNDEFINED/
+
+# Package Files #
+*.jar
+*.war
+*.ear

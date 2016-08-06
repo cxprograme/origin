@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'修改企业管理模式信息', styles:'bootstrap,font-awesome,animate,style,dtvalidate,awesome-checkbox'}){%>
+    <style type="text/css">
+        body{padding-top:10px;}
+    </style>
+    <%}%>
+</head>
+<body>
+<!-- START 内容部分 -->
+<div class="container">
+    <form class="form-horizontal" id="info-form" method="post">
+        <!-- 配置编号 -->
+        <input type="hidden" name="id" value="${companyManageConfig.id}"/>
+
+        <div class="form-group">
+            <label class="col-sm-2 control-label text-right">类型:</label>
+            <div class="col-sm-3">
+                <div class="radio radio-primary radio-inline">
+                    <input type="radio" id="companyType-1" name="companyType" valid="r" validTitle="企业类型" validInfoArea="companyType_info_area" value="1" ${decode(companyManageConfig.companyType,1,"checked","")}/>
+                    <label for="companyType-1"> 重点 </label>
+                </div>
+                <div class="radio radio-primary radio-inline">
+                    <input type="radio" id="companyType-0" name="companyType" valid="r" validTitle="企业类型" validInfoArea="companyType_info_area" value="0" ${decode(companyManageConfig.companyType,0,"checked","")}/>
+                    <label for="companyType-0"> 一般 </label>
+                </div>
+
+                <span class="help-block m-b-none" id="companyType_info_area"></span>
+            </div>
+
+            <label class="col-sm-2 control-label text-right">分组模式:</label>
+            <div class="col-sm-3">
+                <div class="radio radio-primary radio-inline">
+                    <input type="radio" id="groupModel-0" name="groupModel" class="form-control" valid="r" validTitle="分组模式" validInfoArea="groupModel_info_area" value="0" ${decode(companyManageConfig.groupModel,0,"checked","")}/>
+                    <label for="groupModel-0"> 非分组 </label>
+                </div>
+                <div class="radio radio-primary radio-inline">
+                    <input type="radio" id="groupModel-1" name="groupModel" class="form-control" valid="r" validTitle="分组模式" validInfoArea="groupModel_info_area" value="1" ${decode(companyManageConfig.groupModel,1,"checked","")}/>
+                    <label for="groupModel-1"> 分组 </label>
+                </div>
+
+                <span class="help-block m-b-none" id="groupModel_info_area"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label text-right">周期:</label>
+            <div class="col-sm-3">
+                <select id="randomType" name="randomType" class="form-control" valid="r" validTitle="周期" validInfoArea="randomType_info_area">
+                    <option value="4" ${decode(companyManageConfig.randomType,4,"selected","")}>自定义</option>
+                    <option value="3" ${decode(companyManageConfig.randomType,3,"selected","")}>周</option>
+                    <option value="2" ${decode(companyManageConfig.randomType,2,"selected","")}>月</option>
+                    <option value="1" ${decode(companyManageConfig.randomType,1,"selected","")}>季度</option>
+                    <option value="0" ${decode(companyManageConfig.randomType,0,"selected","")}>年</option>
+                </select>
+                <span class="help-block m-b-none" id="randomType_info_area"></span>
+            </div>
+            <label class="col-sm-2 control-label text-right">天数:</label>
+            <div class="col-sm-3">
+                <input type="text" id="randomDays" name="randomDays" class="form-control" valid="r|number" validTitle="抽查天数" validInfoArea="randomDays_info_area" value="${companyManageConfig.randomDays!"0"}"/>
+                <span class="help-block m-b-none" id="randomDays_info_area"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-2 control-label text-right">人员组成:</label>
+            <div class="col-sm-3">
+                固定人数<input type="text" id="fixNum" name="fixNum" class="form-control" valid="r|number" validTitle="固定人数" validInfoArea="fixNum_info_area" value="${companyManageConfig.fixNum!"0"}"/>
+                <span class="help-block m-b-none" id="fixNum_info_area"></span>
+            </div>
+            <div class="col-sm-3">
+                随机人数<input type="text" id="randomNum" name="randomNum" class="form-control" valid="r|number" validTitle="随机人数" validInfoArea="randomNum_info_area" value="${companyManageConfig.randomNum!"0"}"/>
+                <span class="help-block m-b-none" id="randomNum_info_area"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button type="button" class="save-btn btn btn-primary">
+                    <i class="fa fa-save"></i> 保存
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+<!-- END 内容部分 -->
+
+<!-- START 公共脚本 -->
+<%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,dtvalidate,dtvalidate-lang-zh_cn'}){}%>
+<!-- END 公共脚本 -->
+<script>
+    var cvalidator;
+    $(function(){
+        //初始化验证器
+        cvalidator = $('#info-form').dtValidator();
+
+        //提交表单
+        $('.save-btn').on('click',function(){
+            if(!cvalidator.validResult()){
+                $.fn.DtValidator.tools.toast('验证失败！', 'error', 2000);
+                return;
+            }
+
+            //数据提交
+            $.post('/company/manageconfig/info/usave.do',$('#info-form').serialize(),function(data){
+                if( data.ok ){
+                    parent.layer.msg(data.msg,{icon:1,time:1500,shade: [0.8, '#393D49']}, function(){
+                        parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭弹窗
+                    });
+                }else{
+                    parent.layer.msg(data.msg,{icon: 0,time:1500,shade: [0.8, '#393D49']});
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

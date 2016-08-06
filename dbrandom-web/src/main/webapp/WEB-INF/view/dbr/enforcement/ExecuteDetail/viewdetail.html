@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+	  <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'执法反馈详情以及处理情况', styles:'bootstrap,font-awesome,animate,style'}){%>
+	  <style type="text/css">
+		  body{padding-top:10px;}
+	  </style>
+	  <%}%>
+  </head>
+  <body>
+	<!-- START 内容部分 -->
+	<div class="container">
+		<!-- 任务基本信息 -->
+		<h2>任务基本情况</h2>
+		<table class="table">
+			<tr>
+				<td width="100" class="text-right">企业名称：</td>
+				<td>${feedbackDetail.companyName}</td>
+			</tr>
+			<tr>
+				<td class="text-right">检查日期：</td>
+				<td>${feedbackDetail.checkDate,dateFormat="yyyy-MM-dd"}</td>
+			</tr>
+			<tr>
+				<td class="text-right">检查人员：</td>
+				<td>${feedbackDetail.executorName}</td>
+			</tr>
+			<tr>
+				<td class="text-right">检查结果：</td>
+				<td><%
+					for(var dict in dictFun("deal_status","")){
+						if( parseInt(dict.detailCode) == feedbackDetail.executeFeedback.processStatus){
+					%>
+					${dict.detailName}
+					<%
+						}
+					%>
+					<%}%></td>
+			</tr>
+			<tr>
+				<td class="text-right">附件：</td>
+				<td><%for(var file in feedbackDetail.executeFeedback.attachFile){%>
+					${file.fileRealName}
+					<%}%>
+				</td>
+			</tr>
+			<tr>
+				<td class="text-right">检查内容：</td>
+				<td>${feedbackDetail.executeFeedback.checkContent}</td>
+			</tr>
+		</table>
+
+		<!-- 分发处理情况 -->
+		<h2>分发处理情况</h2>
+		<table class="table table-bordered">
+			<tr>
+				<th>日期</th>
+				<th>管理机构</th>
+				<th>意见</th>
+			</tr>
+			<%for(var detail in dealDetail){%>
+			<tr>
+				<td>${detail.createDate,dateFormat="yyyy-MM-dd"}</td>
+				<td>${detail.distributeGroupName}</td>
+				<td>${detail.distributeDetail}</td>
+			</tr>
+			<%if(!isEmpty(detail.executeDetail)){%>
+			<tr>
+				<td>${detail.modifyDate,dateFormat="yyyy-MM-dd"}</td>
+				<td>${detail.executeGroupName}</td>
+				<td>${detail.executeDetail}</td>
+			</tr>
+			<%}}%>
+		</table>
+		<button type="button" class="back-btn btn btn-warning">
+			<i class="fa fa-reply"></i> 返回
+		</button>
+	</div>
+	<!-- END 内容部分 -->
+	
+	<!-- START 公共脚本 -->
+    <%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap'}){}%>
+	<!-- END 公共脚本 -->
+	<script>
+	var cvalidator;
+	$(function(){
+
+		$('.back-btn').on('click',function(){
+			location.href = '/execute/detail/main.do';
+		});
+    });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'执法反馈办结', styles:'bootstrap,font-awesome,animate,style,dtvalidate'}){%>
+    <style type="text/css">
+        body{padding-top:10px;}
+    </style>
+    <%}%>
+</head>
+<body>
+<!-- START 内容部分 -->
+<div class="container">
+    <form class="form-horizontal" id="info-form" method="post">
+        <input type="hidden" name="status" value="2"/>
+        <input type="hidden" name="feedbackId" value="${feedback.id}"/>
+        <input type="hidden" name="executeGroupId" value="${groupId}">
+        <input type="hidden" name="distributeGroupId" value="${groupId}">
+
+        <div class="form-group">
+            <label class="col-sm-2 control-label text-right">任务编号</label>
+            <div class="col-sm-6">
+                <input type="text" id="planId" name="planId" class="form-control" value="${feedback.planId}" readonly/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label text-right">说明</label>
+            <div class="col-sm-6">
+                <textarea id="executeDetail" name="executeDetail" class="form-control" valid="r" validTitle="办结说明" validInfoArea="executeDetail_info_area" rows="6"></textarea>
+            </div>
+            <div class="col-sm-4"><p class="help-block" id="executeDetail_info_area"></p></div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button type="button" class="save-btn btn btn-primary">
+                    <i class="fa fa-save"></i> 办结
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+<!-- END 内容部分 -->
+
+<!-- START 公共脚本 -->
+<%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,dtvalidate,dtvalidate-lang-zh_cn'}){}%>
+<!-- END 公共脚本 -->
+<script>
+    var cvalidator;
+    $(function(){
+        //初始化验证器
+        cvalidator = $('#info-form').dtValidator();
+
+        //提交表单
+        $('.save-btn').on('click',function(){
+            if(!cvalidator.validResult()){
+                $.fn.DtValidator.tools.toast('验证失败！', 'error', 2000);
+                return;
+            }
+
+            //数据提交
+            $.post('/execute/detail/dealself.do',$('#info-form').serialize(),function(data){
+                if( data.ok ){
+                    parent.layer.msg(data.msg,{icon:1,time:1500,shade: [0.8, '#393D49']}, function(){
+                        parent.$todotable.bootstrapTable('refresh');
+                        parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭弹窗
+                    });
+                }else{
+                    parent.layer.msg(data.msg,{icon: 0,time:1500,shade: [0.8, '#393D49']});
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

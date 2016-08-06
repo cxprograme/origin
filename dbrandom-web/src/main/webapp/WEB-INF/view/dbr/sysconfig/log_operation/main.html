@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'日志管理',styles:'bootstrap,font-awesome,animate,style,bootstrap-table,laydate'}){%>
+    <style>
+        .fixed-table-container {
+            background-color: #fff;
+        }
+    </style>
+    <%}%>
+</head>
+
+<body class="gray_bg">
+
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <!-- START 右侧数据 -->
+            <!-- START 查询表单 -->
+            <div class="ibox float-e-margins fixed-table-container">
+                <div class="ibox-title">
+                    <h5>查询表单</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <form role="form" class="form-inline">
+                        <div class="form-group" >
+                            <label for="opName">&nbsp;&nbsp;操作名称:</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="opName" id="opName"
+                                       value="">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="starttime">&nbsp;&nbsp;开始时间:</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="startTime" id="startTime" value="">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="endtime">&nbsp;&nbsp;结束时间:</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="endtime" id="endTime"
+                                       value="">
+                            </div>
+                        </div>
+                    </form>
+                    <form role="form" class="form-inline" style="margin-top: 10px">
+                        <div class="form-group">
+                            <label for="createMan">&nbsp;&nbsp;操作人员:</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="createMan" id="createMan"
+                                       value="">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="opType" class="">&nbsp;&nbsp;操作类型:</label>
+                            <select id="opType" name="opType" class="form-control">
+                                <option value="">选择类型</option>
+                                <%
+                                for(var log in logOperations){
+                                %>
+                                <option value="${log}">${log}</option>
+                                <%
+                                }%>
+                            </select>
+                        </div>
+
+                        <div class="form-group text-right" style="margin-left:50px">
+                            <a class="btn btn-success  text-right" id="search" style="margin-bottom: 0px;">查询</a>
+                             <button class="btn btn-default" type="reset" style="margin-bottom: 0px;">重置</button>
+                        </div>
+                    </form>
+                    </div>
+                </div>
+            </div>
+            <!-- END 查询表单 -->
+
+            <!-- START 数据表格 -->
+            <table id="logOperagrouptable"
+                   data-toolbar="#toolbar"
+                   data-side-pagination="server"
+                   data-pagination="true"
+                   data-resizable="true"
+                   data-show-columns="true"
+                   data-show-toggle="true"
+                   data-side-pagination="server"
+
+                   data-page-size="15">
+            </table>
+            <!-- END 数据表格 -->
+
+            <!-- END 右侧数据 -->
+        </div>
+    </div>
+</div>
+
+<%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,bootstrap-table,bootstrap-table-zh-CN,layer,laydate,moment-date'}){}%>
+
+<script>
+    var $logOperagrouptable = $('#logOperagrouptable'), selections = [];
+
+    function initTable() {
+        //先销毁表格
+        $logOperagrouptable.bootstrapTable('destroy');
+        //START 表格配置
+        $logOperagrouptable.bootstrapTable({
+            height: getHeight(),
+            method: "get",  //使用get请求到服务器获取数据
+            url: '/log/findall.do',
+            search: false,
+            queryParams: function queryParams(params) {
+
+                //设置查询参数
+
+                var param = {
+                    pageNumber: params.pageNumber,
+                    pageSize: params.pageSize,
+                    opName: $("#opName").val(),
+                    opType: $("#opType").val(),
+                    startTime: $("#startTime").val(),
+                    endTime: $("#endTime").val(),
+
+                };
+
+                return param;
+            },
+            columns: [
+                {
+                    title: '编号',
+                    field: 'id',
+                    align: 'left',
+                    valign: 'middle',
+                    visible: false
+                },
+                {
+                    title: '操作类型',
+                    field: 'opType',
+                    align: 'left',
+                    valign: 'middle',
+                    sortable: true
+                },
+                {
+                    title: '操作名称',
+                    field: 'opName',
+                    align: 'left',
+                    valign: 'middle',
+                    sortable: true
+                },
+                {
+                    title: '操作对象编号',
+                    field: 'opObjId',
+                    align: 'left',
+                    valign: 'middle'
+                },
+                {
+                    title: '创建时间',
+                    field: 'createDate',
+                    align: 'left',
+                    valign: 'middle',
+                    formatter:function(data){
+                       // return data.split(" ")[0];
+                        return data;
+                    },
+                    sortable: true
+                },
+                {
+                    title: '创建人',
+                    field: 'createMan',
+                    align: 'left',
+                    valign: 'middle',
+                    sortable: true
+                }
+            ],
+            onLoadSuccess: function () {
+            }
+        });
+        //END 表格配置
+    }
+
+    $(function () {
+        //时间配置
+        laydate({
+            elem: '#endTime',
+            format: 'YYYY-MM-DD hh:mm:ss', // 分隔符可以任意定义，该例子表示只显示年月
+            festival: true, //显示节日
+            fixed: false,
+            istime: true,
+            choose: function (datas) { //选择日期完毕的回调
+                //alert('得到：'+datas);
+            }
+        });
+        laydate({
+            elem: '#startTime',
+            format: 'YYYY-MM-DD hh:mm:ss', // 分隔符可以任意定义，该例子表示只显示年月
+            festival: true, //显示节日
+            fixed: false,
+            istime: true,
+            choose: function (datas) { //选择日期完毕的回调
+               //  alert('得到：'+datas);
+            }
+        });
+
+        //调用函数，初始化表格
+        initTable();
+
+        //当点击查询按钮的时候执行
+        $("#search").bind("click", initTable);
+
+        //表格高度自适应
+        $(window).resize(function () {
+            $logOperagrouptable.bootstrapTable('resetView', {
+                height: getHeight()
+            });
+        });
+    });
+
+    function queryParams() {
+        return $('#info-form').serialize()
+    }
+
+    //表格高度计算
+    function getHeight() {
+        return $(window).height() - $('.btn-group').outerHeight(true) - $('.breadcrumb').outerHeight(true) - 150;
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.core.power.mapper.DictMapper">
+
+    <!-- 返回结果集映射 数据字典分类信息 -->
+    <resultMap type="dict" id="dictMap">
+        <!-- 编号 -->
+        <id column="id" property="id"/>
+        <!-- 类型 -->
+        <result column="type_code" property="typeCode"/>
+        <!-- 名称 -->
+        <result column="name" property="name"/>
+        <!-- 备注 -->
+        <result column="remark" property="remark"/>
+        <!-- 创建时间 -->
+        <result column="create_date" property="createDate"/>
+        <!-- 修改时间 -->
+        <result column="modify_date" property="modifyDate"/>
+        <!-- 删除标志 -->
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <!-- 数据字典分类信息 表名定义 -->
+    <sql id="tableName">t_dict</sql>
+
+    <!-- 数据字典分类信息 所有列定义 -->
+    <sql id="tbAllColumns">
+		id,
+		type_code,
+		name,
+		remark,
+		create_date,
+		modify_date,
+		deleted
+	</sql>
+
+    <!-- 数据字典分类信息 新增列定义 -->
+    <sql id="tbInsertColumns">
+		type_code,
+		name,
+		remark,
+		create_date,
+		modify_date,
+		deleted
+	</sql>
+
+    <!-- 新增 数据字典分类信息-->
+    <insert id="insert" parameterType="dict" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES(
+        #{typeCode},
+        #{name},
+        #{remark},
+        sysdate(),
+        #{modifyDate},
+        0
+        )
+    </insert>
+
+    <!-- 批量新增 数据字典分类信息-->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.typeCode},
+            #{item.name},
+            #{item.remark},
+            sysdate(),
+            #{item.modifyDate},
+            0
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改 数据字典分类信息-->
+    <update id="update" parameterType="dict">
+        UPDATE
+        <include refid="tableName"/>
+        <set>
+            <if test="typeCode != null and typeCode !=''">type_code = #{typeCode},</if>
+            <if test="name != null and name !=''">name = #{name},</if>
+            <if test="remark != null and remark !=''">remark = #{remark},</if>
+            <if test="createDate != null">create_date = #{createDate},</if>
+            <if test="modifyDate != null">modify_date = #{modifyDate}</if>
+        </set>
+        WHERE
+        id = #{id}
+    </update>
+
+    <!-- 删除 数据字典分类信息-->
+    <delete id="delete" parameterType="int">
+        UPDATE
+        <include refid="tableName"/>
+        SET
+        deleted = 1
+        WHERE
+        id = #{id}
+    </delete>
+
+
+    <!-- 批量删除 数据字典分类信息-->
+    <delete id="deleteByIds" parameterType="list">
+        UPDATE
+        <include refid="tableName"/>
+        SET
+        deleted = 1
+        WHERE
+        id IN
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+
+    <!-- 查询指定数据字典分类信息 -->
+    <select id="queryByDictId" parameterType="Integer" resultMap="dictMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有数据字典分类信息 -->
+    <select id="queryAllDict" resultMap="dictMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE
+        deleted = 0
+    </select>
+
+    <!-- 多条件 查询数据字典分类信息 -->
+    <select id="queryByCnd" resultMap="dictMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE deleted = 0
+        <if test="id != null and id !=''">AND id = #{id}</if>
+        <if test="typeCode != null and typeCode !=''">AND type_code = #{typeCode}</if>
+        <if test="name != null and name !=''">AND name = #{name}</if>
+        <if test="remark != null and remark !=''">AND remark = #{remark}</if>
+        <if test="createDate != null">AND create_date = #{createDate}</if>
+        <if test="modifyDate != null">AND modify_date = #{modifyDate}</if>
+    </select>
+
+</mapper>

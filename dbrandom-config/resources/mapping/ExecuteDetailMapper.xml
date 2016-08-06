@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.dbr.enforcement.mapper.ExecuteDetailMapper">
+
+    <!-- 返回结果集映射 执法反馈处理纪录 -->
+    <resultMap type="executeDetail" id="executeDetailMap">
+        <!-- 纪录编号 -->
+        <id column="id" property="id"/>
+        <!-- 对应反馈编号 -->
+        <result column="feedback_id" property="feedbackId"/>
+        <!-- 处理机构编号 -->
+        <result column="execute_group_id" property="executeGroupId"/>
+        <!-- 处理机构名称 -->
+        <result column="execute_group_name" property="executeGroupName"/>
+        <!-- 处理意见 -->
+        <result column="execute_detail" property="executeDetail"/>
+        <!-- 分发机构编号 -->
+        <result column="distribute_group_id" property="distributeGroupId"/>
+        <!-- 分发机构名称 -->
+        <result column="distribute_group_name" property="distributeGroupName"/>
+        <!-- 分发意见 -->
+        <result column="distribute_detail" property="distributeDetail"/>
+        <!-- 限办日期 -->
+        <result column="end_date" property="endDate"/>
+        <!-- 处理状态 0:待处理 1:已回复2:已办结 -->
+        <result column="status" property="status"/>
+        <!-- 创建时间 -->
+        <result column="create_date" property="createDate"/>
+        <!-- 修改时间 -->
+        <result column="modify_date" property="modifyDate"/>
+    </resultMap>
+
+    <!-- 执法反馈处理纪录 表名定义 -->
+    <sql id="tableName">t_execute_detail</sql>
+
+    <!-- 执法反馈处理纪录 所有列定义 -->
+    <sql id="tbAllColumns">
+		tba.id,
+		tba.feedback_id,
+		tba.execute_group_id,
+		tba.execute_detail,
+		tba.distribute_group_id,
+		tba.distribute_detail,
+		tba.end_date,
+		tba.status,
+		tba.create_date,
+		tba.modify_date,
+		tbb.group_name AS execute_group_name,
+		tbc.group_name AS distribute_group_name
+	</sql>
+
+    <!-- 执法反馈处理纪录 新增列定义 -->
+    <sql id="tbInsertColumns">
+		feedback_id,
+		execute_group_id,
+		execute_detail,
+		distribute_group_id,
+		distribute_detail,
+		end_date,
+		status,
+		create_date,
+		modify_date
+	</sql>
+
+    <!-- 新增 执法反馈处理纪录-->
+    <insert id="insert" parameterType="executeDetail" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES(
+        #{feedbackId},
+        #{executeGroupId},
+        #{executeDetail},
+        #{distributeGroupId},
+        #{distributeDetail},
+        #{endDate},
+        #{status},
+        sysdate(),
+        #{modifyDate}
+        )
+    </insert>
+
+    <!-- 批量新增 执法反馈处理纪录-->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.feedbackId},
+            #{item.executeGroupId},
+            #{item.executeDetail},
+            #{item.distributeGroupId},
+            #{item.distributeDetail},
+            #{item.endDate},
+            #{item.status},
+            sysdate(),
+            #{item.modifyDate}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改 执法反馈处理纪录-->
+    <update id="update" parameterType="executeDetail">
+        UPDATE
+        <include refid="tableName"/>
+        <set>
+            <if test="feedbackId != null">feedback_id = #{feedbackId},</if>
+            <if test="executeGroupId != null">execute_group_id = #{executeGroupId},</if>
+            <if test="executeDetail != null and executeDetail !=''">execute_detail = #{executeDetail},</if>
+            <if test="distributeGroupId != null">distribute_group_id = #{distributeGroupId},</if>
+            <if test="distributeDetail != null and distributeDetail !=''">distribute_detail = #{distributeDetail},</if>
+            <if test="endDate != null">end_date = #{endDate},</if>
+            <if test="status != null">status = #{status},</if>
+            modify_date = sysdate()
+        </set>
+        WHERE
+        id = #{id}
+    </update>
+
+    <!-- 删除 执法反馈处理纪录-->
+    <delete id="delete" parameterType="int">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id = #{id}
+    </delete>
+
+
+    <!-- 批量删除 执法反馈处理纪录-->
+    <delete id="deleteByIds" parameterType="list">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id IN
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+
+    <!-- 查询指定执法反馈处理纪录 -->
+    <select id="queryByExecuteDetailId" parameterType="Integer" resultMap="executeDetailMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/> tba
+        LEFT JOIN power_group tbb ON tbb.group_id = tba.execute_group_id
+        WHERE tba.id = #{id}
+    </select>
+
+    <!-- 查询所有执法反馈处理纪录 -->
+    <select id="queryAllExecuteDetail" resultMap="executeDetailMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/> tba
+        LEFT JOIN power_group tbb ON tbb.group_id = tba.execute_group_id
+        LEFT JOIN power_group tbc ON tbc.group_id = tba.distribute_group_id
+    </select>
+
+    <!-- 多条件 查询执法反馈处理纪录 -->
+    <select id="queryByCnd" resultMap="executeDetailMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/> tba
+        LEFT JOIN power_group tbb ON tbb.group_id = tba.execute_group_id
+        LEFT JOIN power_group tbc ON tbc.group_id = tba.distribute_group_id
+        <where>
+            <if test="id != null">tba.id = #{id}</if>
+            <if test="feedbackId != null">AND tba.feedback_id = #{feedbackId}</if>
+            <if test="executeGroupId != null">AND tba.execute_group_id = #{executeGroupId}</if>
+            <if test="executeDetail != null and executeDetail !=''">AND tba.execute_detail = #{executeDetail}</if>
+            <if test="distributeGroupId != null">AND tba.distribute_group_id = #{distributeGroupId}</if>
+            <if test="distributeDetail != null and distributeDetail !=''">AND tba.distribute_detail = #{distributeDetail}</if>
+            <if test="endDate != null">AND tba.end_date = #{endDate}</if>
+            <if test="status != null">AND tba.status = #{status}</if>
+            <if test="createDate != null">AND tba.create_date = #{createDate}</if>
+            <if test="modifyDate != null">AND tba.modify_date = #{modifyDate}</if>
+        </where>
+    </select>
+
+</mapper>

@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.dbr.manageobj.mapper.LawExecutorMapper">
+
+    <!-- 返回结果集映射 执法者基本信息 -->
+    <resultMap type="lawExecutor" id="lawExecutorMap">
+        <!-- 执法者编号 -->
+        <id column="id" property="id"/>
+        <!-- 姓名 -->
+        <result column="name" property="name"/>
+        <!-- 所属机构 -->
+        <result column="group_id" property="groupId"/>
+        <!-- 所属机构名称 -->
+        <result column="group_name" property="groupName"/>
+        <!-- 所属科室 -->
+        <result column="department_id" property="departmentId"/>
+        <!-- 所属科室名称 -->
+        <result column="department_name" property="departmentName"/>
+        <!-- 职务编号 -->
+        <result column="duty_id" property="dutyId"/>
+        <!-- 联系电话 -->
+        <result column="mobile" property="mobile"/>
+        <!-- 资质 1:资深2:普通 -->
+        <result column="aptitudes" property="aptitudes"/>
+        <!-- 工作量 -->
+        <result column="workload" property="workload"/>
+        <!-- 创建时间 -->
+        <result column="create_date" property="createDate"/>
+        <!-- 修改时间 -->
+        <result column="modify_date" property="modifyDate"/>
+        <!-- 删除标志 -->
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <!-- 执法者基本信息 表名定义 -->
+    <sql id="tableName">t_law_executor</sql>
+
+    <!-- 执法者基本信息 所有列定义 -->
+    <sql id="tbAllColumns">
+		id,
+		name,
+		group_id,
+		department_id,
+		duty_id,
+		mobile,
+		aptitudes,
+		workload,
+		create_date,
+		modify_date,
+		deleted
+	</sql>
+
+    <!-- 执法者基本信息 所有列定义 -->
+    <sql id="tbFullColumns">
+		tba.id,
+		tba.name,
+		tba.group_id,
+		tbb.group_name,
+		tba.department_id,
+		tbc.group_name AS department_name,
+		tba.duty_id,
+		tba.mobile,
+		tba.aptitudes,
+		tba.workload,
+		tba.create_date,
+		tba.modify_date,
+		tba.deleted
+	</sql>
+
+    <!-- 执法者基本信息 新增列定义 -->
+    <sql id="tbInsertColumns">
+		name,
+		group_id,
+		department_id,
+		duty_id,
+		mobile,
+		aptitudes,
+		workload,
+		create_date,
+		modify_date,
+		deleted
+	</sql>
+
+    <!-- 新增 执法者基本信息-->
+    <insert id="insert" parameterType="lawExecutor" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES(
+        #{name},
+        #{groupId},
+        #{departmentId},
+        #{dutyId},
+        #{mobile},
+        #{aptitudes},
+        #{workload},
+        sysdate(),
+        #{modifyDate},
+        0
+        )
+    </insert>
+
+    <!-- 批量新增 执法者基本信息-->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.name},
+            #{item.groupId},
+            #{item.departmentId},
+            #{item.dutyId},
+            #{item.mobile},
+            #{item.aptitudes},
+            #{item.workload},
+            sysdate(),
+            #{item.modifyDate},
+            0
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改 执法者基本信息-->
+    <update id="update" parameterType="lawExecutor">
+        UPDATE
+        <include refid="tableName"/>
+        <set>
+            <if test="name != null and name !=''">name = #{name},</if>
+            <if test="groupId != null and groupId !=''">group_id = #{groupId},</if>
+            <if test="departmentId != null and departmentId !=''">department_id = #{departmentId},</if>
+            <if test="dutyId != null and dutyId !=''">duty_id = #{dutyId},</if>
+            <if test="mobile != null and mobile !=''">mobile = #{mobile},</if>
+            <if test="aptitudes != null and aptitudes !=''">aptitudes = #{aptitudes},</if>
+            <if test="workload != null and workload !=''">workload = #{workload},</if>
+            <if test="createDate != null">create_date = #{createDate},</if>
+            <if test="modifyDate != null">modify_date = #{modifyDate},</if>
+            <if test="deleted != null">deleted = #{deleted}</if>
+        </set>
+        WHERE
+        id = #{id}
+    </update>
+
+    <!-- 删除 执法者基本信息-->
+    <delete id="delete" parameterType="int">
+        UPDATE
+        <include refid="tableName"/>
+        SET
+        deleted = 1
+        WHERE
+        id = #{id}
+    </delete>
+
+
+    <!-- 批量删除 执法者基本信息-->
+    <delete id="deleteByIds" parameterType="list">
+        UPDATE
+        <include refid="tableName"/>
+        SET
+        deleted = 1
+        WHERE
+        id IN
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+
+    <!-- 查询指定执法者基本信息 -->
+    <select id="queryByLawExecutorId" parameterType="Integer" resultMap="lawExecutorMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有执法者基本信息 -->
+    <select id="queryAllLawExecutor" resultMap="lawExecutorMap">
+        SELECT
+        <include refid="tbFullColumns"/>
+        FROM
+        <include refid="tableName"/> tba
+        LEFT JOIN power_group tbb on tbb.group_id = tba.group_id
+        LEFT JOIN power_group tbc on tbc.group_id = tba.department_id
+        WHERE tba.deleted = 0
+    </select>
+
+    <!-- 多条件 查询执法者基本信息 -->
+    <select id="queryByCnd" resultMap="lawExecutorMap">
+        SELECT
+        <include refid="tbFullColumns"/>
+        FROM
+        <include refid="tableName"/> tba
+        LEFT JOIN power_group tbb on tbb.group_id = tba.group_id
+        LEFT JOIN power_group tbc on tbc.group_id = tba.department_id
+        WHERE tba.deleted = 0
+        <if test="id != null and id !=''">AND tba.id = #{id}</if>
+        <if test="name != null and name !=''">AND tba.name = #{name}</if>
+        <if test="searchName != null and searchName !=''">AND tba.name LIKE CONCAT('%',#{searchName},'%')</if>
+        <if test="departmentId != null">AND tba.department_id = #{departmentId}</if>
+        <if test="dutyId != null and dutyId !=''">AND tba.duty_id = #{dutyId}</if>
+        <if test="mobile != null and mobile !=''">AND tba.mobile = #{mobile}</if>
+        <if test="aptitudes != null">AND tba.aptitudes = #{aptitudes}</if>
+        <if test="workload != null">AND tba.workload = #{workload}</if>
+        <if test="createDate != null">AND tba.create_date = #{createDate}</if>
+        <if test="modifyDate != null">AND tba.modify_date = #{modifyDate}</if>
+
+        <if test="groupId != null">AND tba.group_id IN (SELECT tbc.group_id
+            FROM power_group tbc LEFT JOIN power_group tbd ON tbd.group_id = tbc.group_id AND tbd.group_id = #{groupId}
+            WHERE tbc.group_level LIKE concat((SELECT group_level FROM power_group WHERE group_id =
+            #{groupId}),#{groupId}, '_%') AND tbc.deleted = 0 OR tbc.group_id = #{groupId} )
+        </if>
+    </select>
+
+</mapper>

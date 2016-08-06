@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'抽取规则设置', styles:'bootstrap,font-awesome,animate,style,dtvalidate,awesome-checkbox,bootstrap-spinner'}){}%>
+</head>
+
+
+<body>
+
+<div class="wrapper wrapper-content">
+    <!-- START 内容部分 -->
+    <form id="info-form" method="post">
+        <input type="hidden" name="groupId" value="${groupId}"/>
+        <input type="hidden" name="id" value="${ruleGroup.id!}"/>
+        <div class="row">
+            <div class="col-md-12">
+                <!-- START 分组 -->
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4>分组模式设置</h4>
+                    </div>
+                    <div class="panel-body form-inline">
+
+                            <table class="table text-center" style="margin-bottom: 0px;">
+                                <thead>
+                                <tr>
+                                    <th class="text-center">企业类型</th>
+                                    <th class="text-center">人员分配模式</th>
+                                    <th class="text-center">人员组合（固定＋随机)</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>一般企业</td>
+                                    <td>
+                                        <div class="form-group">
+                                            <div class="radio radio-primary radio-inline">
+                                                <input type="radio" id="normalGroup-1" class="group-mode" data-val="normal" name="normalGroup" valid="r" validTitle="分组模式" validInfoArea="normalGroup_info_areaa" value="1" ${decode(ruleGroup.normalGroup!,1,"checked","")}/>
+                                                <label for="normalGroup-1"> 分组模式 </label>
+                                            </div>
+                                            <div class="radio radio-primary radio-inline">
+                                                <input type="radio" id="normalGroup-0"  class="nogroup-mode" data-val="normal" name="normalGroup" valid="r" validTitle="分组模式" validInfoArea="normalGroup_info_areaa" value="0" ${decode(ruleGroup.normalGroup!,0,"checked","")}/>
+                                                <label for="normalGroup-0"> 非分组模式 </label>
+                                            </div>
+                                            <span class="help-block m-b-none" id="normalGroup_info_areaa"></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group">
+
+                                            <div class="input-group spinner" >
+                                                <input type="text" id="normalFix" name="normalFix" class="form-control" value="${ruleGroup.normalFix!"1"}" readonly/>
+                                            </div>
+                                            +
+                                            <div id="normalRandom-spinner" class="input-group spinner" data-trigger="spinner">
+                                                <input type="text" id="normalRandom" name="normalRandom" class="form-control" value="${ruleGroup.normalRandom!}" data-max="10" data-min="1" data-step="1">
+                                                <div class="input-group-addon">
+                                                    <a href="javascript:;" class="spin-up" data-spin="up"><i class="fa fa-sort-up"></i></a>
+                                                    <a href="javascript:;" class="spin-down" data-spin="down"><i class="fa fa-sort-down"></i></a>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>重点企业</td>
+                                    <td>
+                                        <div class="form-group">
+                                            <div class="radio radio-primary radio-inline">
+                                                <input type="radio" id="importantGroup-1" class="group-mode" data-val="important" name="importantGroup" valid="r" validTitle="分组模式" validInfoArea="importantGroup_info_areaa" value="1" ${decode(ruleGroup.importantGroup!,0,"checked","")}/>
+                                                <label for="importantGroup-1"> 分组模式 </label>
+                                            </div>
+                                            <div class="radio radio-primary radio-inline">
+                                                <input type="radio" id="importantGroup-0" class="nogroup-mode" data-val="important" name="importantGroup" valid="r" validTitle="分组模式" validInfoArea="importantGroup_info_areaa" value="0" ${decode(ruleGroup.importantGroup!,0,"checked","")}/>
+                                                <label for="importantGroup-0"> 非分组模式 </label>
+                                            </div>
+                                            <span class="help-block m-b-none" id="importantGroup_info_areaa"></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group">
+                                            <div class="input-group spinner">
+                                                <input type="text" id="importantFix" name="importantFix" class="form-control" value="${ruleGroup.importantFix!"1"}" readonly/>
+                                            </div>
+                                            +
+                                            <div id="importantRandom-spinner" class="input-group spinner" data-trigger="spinner">
+                                                <input type="text" id="importantRandom" name="importantRandom" class="form-control" value="${ruleGroup.importantRandom!}" data-max="10" data-min="1" data-step="1">
+                                                <div class="input-group-addon">
+                                                    <a href="javascript:;" class="spin-up" data-spin="up"><i class="fa fa-sort-up"></i></a>
+                                                    <a href="javascript:;" class="spin-down" data-spin="down"><i class="fa fa-sort-down"></i></a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                    </div>
+                </div>
+                <!-- END 分组 -->
+
+                <!-- START 属性 -->
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4>分类属性比重设置（％）</h4>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-6 form-inline">
+                                    <table class="table text-center">
+                                        <thead>
+                                        <tr>
+                                            <th class="text-center">类型属性</th>
+                                            <th class="text-center">百分比</th>
+                                            <th class="text-center">锁定</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <%for(var dict in dictFun("company_trade","")){%>
+                                        <tr>
+                                            <td>${dict.detailName}</td>
+                                            <td>
+                                                <div class="form-group">
+                                                    <div class="input-group spinner type-spinner" data-trigger="spinner" id="spinner-${dict.id}">
+                                                        <input type="hidden" name="configRuleTypes[${dictLP.index-1}].groupId" value="${groupId}"/>
+                                                        <input type="hidden" name="configRuleTypes[${dictLP.index-1}].typeId" value="${dict.detailCode}"/>
+                                                        <%if(isAdd){%>
+                                                        <input type="text" id="pct-${dict.id}" name="configRuleTypes[${dictLP.index-1}].proportion" data-val-name="${dict.detailName}" class="percent-val form-control" value="${100 / dictLP.size}" data-rule="percent" >
+                                                        <%}else{%>
+                                                            <%for(var rtype in ruleType){ if(rtype.typeId==dict.detailCode){%>
+                                                        <input type="text" id="pct-${dict.id}" name="configRuleTypes[${dictLP.index-1}].proportion" data-val-name="${dict.detailName}" class="percent-val form-control" value="${rtype.proportion}" data-rule="percent" >
+                                                            <%} }%>
+                                                        <%}%>
+                                                        <div class="input-group-addon">
+                                                            <a href="javascript:;" class="spin-up" data-spin="up"><i class="fa fa-sort-up"></i></a>
+                                                            <a href="javascript:;" class="spin-down" data-spin="down"><i class="fa fa-sort-down"></i></a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="form-group">
+                                                    <div class="checkbox checkbox-primary checkbox-inline">
+                                                        <input type="checkbox" class="lock-percent" id="lock-${dict.id}" value="${dict.id}" />
+                                                        <label for="lock-${dict.id}"> 锁定 </label>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <%}%>
+                                        </tbody>
+                                    </table>
+                            </div>
+                            <div class="col-md-6">
+                                <div id="per-chart" style="height: 300px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- END 属性 -->
+            </div>
+        </div>
+
+        <!-- END 内容部分 -->
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <a class="save-btn btn btn-primary"><i class="fa fa-save"></i> 保存设置</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,echarts,dtvalidate,dtvalidate-lang-zh_cn,layer,bootstrap-spinner'}){}%>
+
+<script>
+    var cvalidator,totalTypes = $('.lock-percent').length;
+    $(function () {
+
+        //百分比锁定操作
+        $('.lock-percent').on('change',function(){
+            var checkedLocks = $('.lock-percent:checked');
+            //不能全部锁定
+            if( checkedLocks.length === totalTypes -1 ){
+                $(this).attr('checked',false);
+            }
+        })
+
+        //百分比调整监听
+        $(".type-spinner").spinner('changing', function(e, newVal, oldVal) {
+
+            //获取已经锁定的
+            var checkedLocks = $('.lock-percent:checked');
+
+            //获取未锁定的
+            var uncheckedLocks = $('.lock-percent').not("input:checked");
+
+            var lockedTotal = 0;
+            $.each(checkedLocks,function(i,d){
+                lockedTotal += parseInt($('#pct-'+$(this).val()).val());
+            });
+
+            var currentId = $(e.target).attr('id');
+            //取非当前操作对象值
+            var tempPct = 0;
+            $.each(uncheckedLocks,function(i,d){
+                if( 'pct-'+$(d).val() != currentId ){
+                    tempPct= $(this).val();
+                    return;
+                }
+            });
+
+            if( newVal > oldVal ){
+                var opObj = $('#pct-' + tempPct);
+                var tempVal = parseInt(opObj.val())-1;
+                if( tempVal > 0 ){
+                    opObj.val(tempVal);
+                }else{
+                    $(this).val(oldVal);
+                }
+            }else{
+                var opObj = $('#pct-' + tempPct);
+                var tempVal = parseInt(opObj.val())+1;
+                if( tempVal > 0 ){
+                    opObj.val(tempVal);
+                }else{
+                    return oldVal;
+                }
+            }
+
+            //更新图表展示
+            updateChart();
+
+        });
+
+        //初始化验证器
+        cvalidator = $('#info-form').dtValidator();
+
+        //提交表单
+        $('.save-btn').on('click', function () {
+            if (!cvalidator.validResult()) {
+                $.fn.DtValidator.tools.toast('验证失败！', 'error', 2000);
+                return;
+            }
+
+            //数据提交
+            $.post('/config/rule/${decode(isAdd,true,"save","usave")}.do', $('#info-form').serialize(), function (data) {
+                if (data.ok) {
+                    parent.layer.msg(data.msg, {icon: 1, time: 1500, shade: [0.8, '#393D49']}, function () {
+                        parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭弹窗
+                    });
+                } else {
+                    parent.layer.msg(data.msg, {icon: 0, time: 1500, shade: [0.8, '#393D49']});
+                }
+            });
+        });
+
+        //分组模式
+        $('.group-mode').on('change',function(){
+            var currentTag = $(this).attr('data-val');
+            $('#'+currentTag+'Fix').val(1);
+            $('#'+currentTag+'Random').val(1).attr('data-min',1);
+        });
+
+        //非分组模式
+        $('.nogroup-mode').on('change',function(){
+            var currentTag = $(this).attr('data-val');
+            $('#'+currentTag+'Fix').val(0);
+            $('#'+currentTag+'Random').val(2).attr('data-min',2);
+            $('#'+currentTag+'Random-spinner').spinner('changing', function(e, newVal, oldVal) {
+                if( $(this).val() < 2 ){
+                    $(this).val(oldVal);
+                }
+            });
+        });
+
+        //数据量统计
+        var pieChart = echarts.init(document.getElementById("per-chart"));
+        var pieoption = {
+            title: {
+                text: '分类百分比',
+                x: 'center'
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: "{a} <br/>{b} : {c} (占比 {d}%)"
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'right',
+                data: [ <%for(category in dictFun("company_trade", "")){ %>${decode(categoryLP.first,true,"",false,",")}<%print("'" + category.detailName + "'");}%>]
+            },
+            series : [
+                {
+                    name: '数据量统计',
+                    type: 'pie',
+                    radius: '55%',
+                    center: ['50%', '65%'],
+                    data: [<%for(dict in dictFun("company_trade", "")){%>{value: <%if(isAdd){%>${100 / dictLP.size}<%}else{%><%for(var rtype in ruleType){ if(rtype.typeId==dict.detailCode){%>${rtype.proportion}<%}}}%>, name: '${dict.detailName}'}${decode(dictLP.last,true,"",false,",")}<%}%>],
+                    itemStyle: {
+                        emphasis: {
+                            shadowBlur: 10,
+                            shadowOffsetX:0,
+                            shadowColor:'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }
+            ]
+        };
+
+        pieChart.setOption(pieoption);
+
+        //动态调整百分比图表
+        function updateChart(){
+            var currentData = [];
+            $('.percent-val').each(function(i,d){
+                currentData.push( {value:$(this).val(),name:$(this).attr('data-val-name')});
+            });
+            pieoption.series[0].data = currentData;
+            pieChart.setOption(pieoption);
+        }
+        $(window).resize(pieChart.resize);
+
+    });
+
+</script>
+</body>
+</html>

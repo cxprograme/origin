@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<!-- Service扫描 -->
+	<context:component-scan base-package="com.codecrane.core.power.service,com.codecrane.core.schedule,com.codecrane.dbr.*.service,com.codecrane.core.web.function" />
+	<!-- 配置文件 -->
+	<context:property-placeholder location="classpath*:config/db.properties,classpath*:config/app.properties" />
+
+	<!-- 初始化任务计划 -->
+	<bean class="com.codecrane.core.power.service.PowerScheduleInitService" lazy-init="true"/>
+
+	<!-- 数据源配置 -->
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+		<!-- 基本属性 url、user、password -->
+		<property name="url" value="${db.url}" />
+		<property name="username" value="${db.username}" />
+		<property name="password" value="${db.password}" />
+
+		<!-- 配置初始化大小、最小、最大 -->
+		<property name="initialSize" value="${db.initialSize}" />
+		<property name="minIdle" value="${db.minIdle}" />
+		<property name="maxActive" value="${db.maxActive}" />
+
+		<!-- 配置获取连接等待超时的时间,单位ms -->
+		<property name="maxWait" value="${db.maxWait}" />
+
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位ms -->
+		<property name="timeBetweenEvictionRunsMillis" value="${db.timeBetweenEvictionRunsMillis}" />
+
+		<!-- 配置一个连接在池中最小生存的时间，单位ms -->
+		<property name="minEvictableIdleTimeMillis" value="${db.minEvictableIdleTimeMillis}" />
+
+		<property name="validationQuery" value="SELECT 'x'" />
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+
+		<!-- 打开PSCache，并且指定每个连接上PSCache的大小 -->
+		<property name="poolPreparedStatements" value="true" />
+		<property name="maxPoolPreparedStatementPerConnectionSize" value="${db.maxPoolPreparedStatementPerConnectionSize}" />
+
+		<!-- 配置监控统计拦截的filters -->
+		<!-- <property name="filters" value="stat" /> -->
+		
+		<property name="filters" value="config,stat" />
+      	<property name="connectionProperties" value="config.decrypt=true;config.decrypt.key=${db.pkey}" />
+	</bean>
+
+	<!-- 配置sqlSessionFactory -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<!-- <property name="transactionFactory">
+			<bean class="org.apache.ibatis.transaction.managed.ManagedTransactionFactory" />
+		</property> -->
+		<property name="configLocation" value="classpath:mybatis-config.xml" />
+		<property name="mapperLocations" value="classpath*:mapping/**.xml" />
+	</bean>
+
+	<!-- MyBatis接口和xml映射配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.codecrane.core.power.mapper,com.codecrane.dbr.*.mapper" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+	</bean>
+
+	<!-- JDBC事务 --> <!-- proxy-target-class="true" -->
+	<tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
+
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- Spring缓存 -->
+	<bean id="springCacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">
+		<property name="cacheManager" ref="ehcacheManager"/>
+	</bean>
+
+	<bean id="ehcacheManager" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+		<property name="configLocation" value="classpath:ehcache.xml"/>
+		<property name="shared" value="true"/>
+	</bean>
+
+	<!-- 动态定时任务 -->
+	<bean id="customJobFactory" class="com.codecrane.core.schedule.CustomJobFactory"/>
+	<bean id="schedulerFactoryBean" class="org.springframework.scheduling.quartz.SchedulerFactoryBean" >
+		<property name="jobFactory" ref="customJobFactory"/>
+	</bean>
+</beans>

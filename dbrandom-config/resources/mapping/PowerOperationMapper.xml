@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.core.power.mapper.PowerOperationMapper">
+
+	<!-- 返回结果集映射 功能操作信息 -->
+	<resultMap type="powerOperation" id="powerOperationMap">
+		<!-- 操作编号 -->
+		<id column="operattion_id" property="id" />
+		<!-- 操作名称 -->
+		<result column="operattion_name" property="operattionName"/>	
+		<!-- 操作编码 -->
+		<result column="operattion_code" property="operattionCode"/>	
+	</resultMap>
+	
+	<!-- 功能操作信息 表名定义 -->
+	<sql id="tableName">power_operation</sql>
+
+	<!-- 功能操作信息 所有列定义 -->
+	<sql id="tbAllColumns">
+		operattion_id,
+		operattion_name,
+		operattion_code
+	</sql>
+
+	<!-- 功能操作信息 新增列定义 -->
+	<sql id="tbInsertColumns">
+		operattion_name,
+		operattion_code
+	</sql>
+
+	<!-- 新增 功能操作信息-->
+	<insert id="insert" parameterType="powerOperation" useGeneratedKeys="true" keyColumn="operattion_id" keyProperty="id">
+		INSERT INTO 
+			<include refid="tableName"/>
+			(
+			<include refid="tbInsertColumns"/>
+			)
+		VALUES(
+			#{operattionName},
+			#{operattionCode}
+		)
+	</insert>	
+
+	<!-- 批量新增 功能操作信息-->
+	<insert id="insertBatch" parameterType="list">
+		INSERT INTO 
+			<include refid="tableName"/>
+			(
+			<include refid="tbInsertColumns"/>
+			)
+		VALUES
+		<foreach item="item" index="index" collection="list" separator=",">
+        (
+			#{item.operattionName},
+			#{item.operattionCode}
+		)
+		</foreach>
+	</insert>
+	
+	<!-- 修改 功能操作信息-->
+	<update id="update" parameterType="powerOperation">
+		UPDATE 
+			<include refid="tableName"/>
+		SET
+			operattion_name = #{operattionName},
+			operattion_code = #{operattionCode}
+		WHERE 
+			operattion_id = #{id}
+	</update>
+	
+	<!-- 删除 功能操作信息-->
+	<delete id="delete" parameterType="long">
+		DELETE FROM 
+			<include refid="tableName"/>
+		WHERE
+			operattion_id = #{id}
+	</delete>
+	
+	
+	<!-- 批量删除 功能操作信息-->
+	<delete id="deleteByPks" parameterType="list">
+		DELETE FROM 
+			<include refid="tableName"/>
+		WHERE
+			operattion_id IN 
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+        #{item}
+		</foreach>
+	</delete>
+	
+		
+	<!-- 查询指定功能操作信息 -->
+	<select id="queryByPowerOperationId" parameterType="long" resultMap="powerOperationMap"> 
+		SELECT <include refid="tbAllColumns"/> FROM <include refid="tableName"/> WHERE operattion_id = #{id}
+	</select>
+
+	<!-- 查询所有功能操作信息 -->
+	<select id="queryAllPowerOperation" resultMap="powerOperationMap"> 
+		SELECT <include refid="tbAllColumns"/> FROM <include refid="tableName"/>
+	</select>
+	
+</mapper>

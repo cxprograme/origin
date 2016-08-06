@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.dbr.manageobj.mapper.CompanyManageConfigMapper">
+
+    <!-- 返回结果集映射 企业管理模式信息 -->
+    <resultMap type="companyManageConfig" id="companyManageConfigMap">
+        <!-- 配置编号 -->
+        <id column="id" property="id"/>
+        <!-- 所属企业编号 -->
+        <result column="company_id" property="companyId"/>
+        <!-- 管理机构编号 -->
+        <result column="group_id" property="groupId"/>
+        <!-- 企业类型 0:一般1:重点 -->
+        <result column="company_type" property="companyType"/>
+        <!-- 分组模式 0:非分组模式1:分组模式 -->
+        <result column="group_model" property="groupModel"/>
+        <!-- 固定人数 -->
+        <result column="fix_num" property="fixNum"/>
+        <!-- 随机人数 -->
+        <result column="random_num" property="randomNum"/>
+        <!-- 随机抽取方式 0:年1:季度2:月3:周4:自定义 -->
+        <result column="random_type" property="randomType"/>
+        <!-- 抽查天数 -->
+        <result column="random_days" property="randomDays"/>
+    </resultMap>
+
+    <!-- 企业管理模式信息 表名定义 -->
+    <sql id="tableName">t_company_manage_config</sql>
+
+    <!-- 企业管理模式信息 所有列定义 -->
+    <sql id="tbAllColumns">
+		id,
+		company_id,
+		group_id,
+		company_type,
+		group_model,
+		fix_num,
+		random_num,
+		random_type,
+		random_days
+	</sql>
+
+    <!-- 企业管理模式信息 新增列定义 -->
+    <sql id="tbInsertColumns">
+		company_id,
+		group_id,
+		company_type,
+		group_model,
+		fix_num,
+		random_num,
+		random_type,
+		random_days
+	</sql>
+
+    <!-- 新增 企业管理模式信息-->
+    <insert id="insert" parameterType="companyManageConfig" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES(
+        #{companyId},
+        #{groupId},
+        #{companyType},
+        #{groupModel},
+        #{fixNum},
+        #{randomNum},
+        #{randomType},
+        #{randomDays}
+        )
+    </insert>
+
+    <!-- 批量新增 企业管理模式信息-->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.companyId},
+            #{item.groupId},
+            #{item.companyType},
+            #{item.groupModel},
+            #{item.fixNum},
+            #{item.randomNum},
+            #{item.randomType},
+            #{item.randomDays}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改 企业管理模式信息-->
+    <update id="update" parameterType="companyManageConfig">
+        UPDATE
+        <include refid="tableName"/>
+        <set>
+            <if test="companyId != null and companyId !=''">company_id = #{companyId},</if>
+            <if test="groupId != null and groupId !=''">group_id = #{groupId},</if>
+            <if test="companyType != null">company_type = #{companyType},</if>
+            <if test="groupModel != null">group_model = #{groupModel},</if>
+            <if test="fixNum != null">fix_num = #{fixNum},</if>
+            <if test="randomNum != null">random_num = #{randomNum},</if>
+            <if test="randomType != null">random_type = #{randomType},</if>
+            <if test="randomDays != null">random_days = #{randomDays}</if>
+        </set>
+        WHERE
+        id = #{id}
+    </update>
+
+    <!-- 删除 企业管理模式信息-->
+    <delete id="delete" parameterType="int">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id = #{id}
+    </delete>
+
+
+    <!-- 批量删除 企业管理模式信息-->
+    <delete id="deleteByIds" parameterType="list">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id IN
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+
+    <!-- 查询指定企业管理模式信息 -->
+    <select id="queryByCompanyManageConfigId" parameterType="Integer" resultMap="companyManageConfigMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有企业管理模式信息 -->
+    <select id="queryAllCompanyManageConfig" resultMap="companyManageConfigMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+    </select>
+
+    <!-- 多条件 查询企业管理模式信息 -->
+    <select id="queryByCnd" resultMap="companyManageConfigMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        <where>
+            <if test="id != null and id !=''">id = #{id}</if>
+            <if test="companyId != null">AND company_id = #{companyId}</if>
+            <if test="groupId != null">AND group_id = #{groupId}</if>
+            <if test="companyType != null">AND company_type = #{companyType}</if>
+            <if test="groupModel != null">AND group_model = #{groupModel}</if>
+            <if test="fixNum != null">AND fix_num = #{fixNum}</if>
+            <if test="randomNum != null">AND random_num = #{randomNum}</if>
+            <if test="randomType != null">AND random_type = #{randomType}</if>
+            <if test="randomDays != null">AND random_days = #{randomDays}</if>
+        </where>
+    </select>
+
+    <!-- 查询指定企业和管理的管理模式 -->
+    <select id="queryByCompanyAndGroupId" resultMap="companyManageConfigMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE company_id = #{companyId} AND group_id = #{groupId}
+    </select>
+
+</mapper>

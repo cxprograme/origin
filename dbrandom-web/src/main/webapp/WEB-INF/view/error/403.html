@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'服务器出错了',styles:'bootstrap,font-awesome,animate,style'}){}%>
+  </head>
+
+  <body>
+
+    <div class="middle-box text-center animated fadeInDown">
+      <h1>403</h1>
+      <h3 class="font-bold">您没有权限访问当前资源</h3>
+
+      <div class="error-desc">
+        抱歉您没有权限访问当前的资源,请联系系统管理员..<span class="label label-warning"></span>
+        <br/>您可以返回主页看看
+        <br/><a href="/admin/index.html" class="btn btn-primary m-t">主页</a>
+      </div>
+    </div>
+
+    <%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap'}){}%>
+  </body>
+</html>

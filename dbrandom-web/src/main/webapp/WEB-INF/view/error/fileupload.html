@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/assets/img/favicon.ico">
+    <title>出错啦！</title>
+
+    <!-- START 公共样式 -->
+    <%include("/WEB-INF/view/common/inc/global_css.html",{'admin':true}){}%>
+    <!-- END 公共样式 -->
+    
+	<!-- font-awesome -->
+	<link rel="stylesheet" type="text/css" href="/assets/plugins/fontawesome/css/font-awesome.min.css" media="all" />
+  </head>
+
+  <body>
+
+    <!-- START 导航 -->
+    <%include("/WEB-INF/view/common/inc/nav.html",{'dashboard':true}){} %>
+    <!-- END 导航 -->
+    <div class="container-fluid">
+      <div class="row main">
+          <!-- START 内容部分 -->
+	      <div class="jumbotron">
+	        <h2>抱歉，上传的文件超出系统限制大小！</h2>
+	        <p>异常类型：${exception}</p>
+	        <p>
+	          <a class="btn btn-lg btn-primary" href="#" role="button">查看详细信息 &raquo;</a>
+	        </p>
+	      </div>
+          <!-- END 内容部分 -->
+      </div>
+    </div>
+
+    <!-- START 公共脚本 -->
+    <%include("/WEB-INF/view/common/inc/global_script.html"){} %>
+	<!-- END 公共脚本 -->
+    <script>
+	$(function(){
+		
+    });
+    </script>
+  </body>
+</html>

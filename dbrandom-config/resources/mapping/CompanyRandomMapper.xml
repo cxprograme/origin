@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.dbr.extract.mapper.CompanyRandomMapper">
+
+    <!-- 返回结果集映射 企业随机抽取纪录信息 -->
+    <resultMap type="companyRandom" id="companyRandomMap">
+        <!-- 企业抽取结果编号 -->
+        <id column="id" property="id"/>
+        <!-- 所属月份 -->
+        <result column="month" property="month"/>
+        <!-- 所属年份 -->
+        <result column="year" property="year"/>
+        <!-- 企业编号 -->
+        <result column="company_id" property="companyId"/>
+        <!-- 企业名称 -->
+        <result column="company_name" property="companyName"/>
+        <!-- 企业环保联系人 -->
+        <result column="company_ev_manager" property="companyEvManager"/>
+        <!-- 企业环保联系人收集 -->
+        <result column="company_mobile" property="companyMobile"/>
+        <!-- 企业所属行业代码 -->
+        <result column="company_trade" property="companyTrade"/>
+        <!-- 企业类型 -->
+        <result column="company_type" property="companyType"/>
+        <!-- 管理机构编号 -->
+        <result column="manage_group_id" property="manageGroupId"/>
+        <!-- 管理机构名称 -->
+        <result column="manage_group_name" property="manageGroupName"/>
+        <!-- 创建时间 -->
+        <result column="create_date" property="createDate"/>
+        <!-- 抽取纪录日期 -->
+        <result column="record_date" property="recordDate"/>
+        <!-- 抽取批次编号 -->
+        <result column="batch_no" property="batchNo"/>
+    </resultMap>
+
+    <resultMap id="companyRandomGroupMap" type="companyRandom" extends="companyRandomMap">
+        <result column="group_month" property="groupMonth"/>
+    </resultMap>
+
+    <resultMap id="companyRandomCountMap" type="companyRandom" extends="companyRandomMap">
+        <result column="type_total" property="typeTotal"/>
+        <result column="start_month" property="startMonth"/>
+        <result column="end_month" property="endMonth"/>
+    </resultMap>
+
+    <!-- 企业随机抽取纪录信息 表名定义 -->
+    <sql id="tableName">t_company_random</sql>
+
+    <!-- 企业随机抽取纪录信息 所有列定义 -->
+    <sql id="tbAllColumns">
+		id,
+		month,
+		year,
+		company_id,
+		manage_group_id,
+		create_date,
+		record_date,
+		batch_no
+	</sql>
+
+    <sql id="tbFullJoinColumns">
+		tba.id,
+        tba.month,
+        tba.year,
+        tba.company_id,
+        tbb.name AS company_name,
+        tbb.ev_manager AS company_ev_manager,
+        tbb.mobile AS company_mobile,
+        tbb.trade AS company_trade,
+        tbd.company_type,
+        tba.manage_group_id,
+        tbc.group_name AS manage_group_name,
+        tba.create_date,
+        tba.record_date,
+        tba.batch_no
+	</sql>
+
+    <!-- 企业随机抽取纪录信息 新增列定义 -->
+    <sql id="tbInsertColumns">
+		month,
+		year,
+		company_id,
+		company_type,
+		manage_group_id,
+		create_date,
+		record_date,
+		batch_no
+	</sql>
+
+    <!-- 新增 企业随机抽取纪录信息-->
+    <insert id="insert" parameterType="companyRandom" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES(
+        #{month},
+        #{year},
+        #{companyId},
+        #{companyType},
+        #{manageGroupId},
+        sysdate(),
+        sysdate(),
+        #{batchNo}
+        )
+    </insert>
+
+    <!-- 批量新增 企业随机抽取纪录信息-->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.month},
+            #{item.year},
+            #{item.companyId},
+            #{item.companyType},
+            #{item.manageGroupId},
+            sysdate(),
+            sysdate(),
+            #{item.batchNo}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改 企业随机抽取纪录信息-->
+    <update id="update" parameterType="companyRandom">
+        UPDATE
+        <include refid="tableName"/>
+        <set>
+            <if test="month != null and month != ''">month = #{month},</if>
+            <if test="year != null year month != ''">year = #{year},</if>
+            <if test="companyId != null">company_id = #{companyId},</if>
+            <if test="companyType != null">company_type = #{companyType},</if>
+            <if test="manageGroupId != null">manage_group_id = #{manageGroupId},</if>
+            <if test="createDate != null">create_date = #{createDate},</if>
+            <if test="recordDate != null">record_date = #{recordDate},</if>
+            <if test="batchNo != null and batchNo !=''">batch_no = #{batchNo}</if>
+        </set>
+        WHERE
+        id = #{id}
+    </update>
+
+    <!-- 删除 企业随机抽取纪录信息-->
+    <delete id="delete" parameterType="int">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id = #{id}
+    </delete>
+
+
+    <!-- 批量删除 企业随机抽取纪录信息-->
+    <delete id="deleteByIds" parameterType="list">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id IN
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <!-- 删除指定批次抽取纪录 -->
+    <delete id="deleteByBatchNo">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        batch_no = #{batchNo}
+    </delete>
+
+    <!-- 查询指定企业随机抽取纪录信息 -->
+    <select id="queryByCompanyRandomId" parameterType="Integer" resultMap="companyRandomMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有企业随机抽取纪录信息 -->
+    <select id="queryAllCompanyRandom" resultMap="companyRandomMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+    </select>
+
+    <!-- 多条件 查询企业随机抽取纪录信息 -->
+    <select id="queryByCnd" resultMap="companyRandomMap">
+        SELECT
+        <include refid="tbFullJoinColumns"/>
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN t_company tbb ON tbb.id = tba.company_id
+        LEFT JOIN power_group tbc ON tbc.group_id = tba.manage_group_id
+        LEFT JOIN t_company_manage_config tbd ON tbd.group_id = tba.manage_group_id AND tbd.company_id = tba.company_id
+        <where>
+            <if test="id != null">tba.id = #{id}</if>
+            <if test="month != null and month !=''">AND tba.month = #{month}</if>
+            <if test="year != null and year !=''">AND tba.year = #{year}</if>
+            <if test="companyId != null">AND tba.company_id = #{companyId}</if>
+            <if test="manageGroupId != null">AND tba.manage_group_id = #{manageGroupId}</if>
+            <if test="createDate != null">AND tba.create_date = #{createDate}</if>
+            <if test="recordDate != null">AND tba.record_date = #{recordDate}</if>
+            <if test="batchNo != null and batchNo !=''">AND tba.batch_no = #{batchNo}</if>
+            <if test="companyTrade != null and companyTrade !=''">AND tbb.trade = #{companyTrade}</if>
+            <if test="companyType != null">AND tbd.company_type = #{companyType}</if>
+        </where>
+    </select>
+
+    <!-- 分组查询指定管理机构抽取纪录 -->
+    <select id="queryByGrouped" parameterType="Integer" resultMap="companyRandomGroupMap">
+        SELECT record_date,batch_no,group_concat(DISTINCT month ORDER BY month asc) AS group_month
+        FROM
+        <include refid="tableName"/>
+        WHERE manage_group_id = #{groupId}
+        GROUP BY record_date,batch_no
+    </select>
+
+    <select id="queryCountByCompanyType" resultMap="companyRandomCountMap">
+        SELECT
+        company_type,
+        count(company_type) AS type_total,
+        min(month) AS start_month,
+        max(month) AS end_month
+        FROM
+        <include refid="tableName"/>
+        WHERE manage_group_id = #{groupId} AND year = #{year}
+        GROUP BY company_type;
+    </select>
+
+</mapper>

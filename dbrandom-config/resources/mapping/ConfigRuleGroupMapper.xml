@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.dbr.rule.mapper.ConfigRuleGroupMapper">
+
+    <!-- 返回结果集映射 抽取规则分组模式配置 -->
+    <resultMap type="configRuleGroup" id="configRuleGroupMap">
+        <!-- id -->
+        <id column="id" property="id"/>
+        <!-- 所属机构编号 -->
+        <result column="group_id" property="groupId"/>
+        <!-- 一般企业分组模式 -->
+        <result column="normal_group" property="normalGroup"/>
+        <!-- 重点企业分组模式 -->
+        <result column="important_group" property="importantGroup"/>
+        <!-- 一般企业固定人员数 -->
+        <result column="normal_fix" property="normalFix"/>
+        <!-- 重点企业固定人员数 -->
+        <result column="important_fix" property="importantFix"/>
+        <!-- 一般企业随机人员数 -->
+        <result column="normal_random" property="normalRandom"/>
+        <!-- 重点企业随机人员数 -->
+        <result column="important_random" property="importantRandom"/>
+        <!-- 创建时间 -->
+        <result column="create_date" property="createDate"/>
+        <!-- 修改时间 -->
+        <result column="modify_date" property="modifyDate"/>
+    </resultMap>
+
+    <!-- 抽取规则分组模式配置 表名定义 -->
+    <sql id="tableName">t_config_rule_group</sql>
+
+    <!-- 抽取规则分组模式配置 所有列定义 -->
+    <sql id="tbAllColumns">
+		id,
+		group_id,
+		normal_group,
+		important_group,
+		normal_fix,
+		important_fix,
+		normal_random,
+		important_random,
+		create_date,
+		modify_date
+	</sql>
+
+    <!-- 抽取规则分组模式配置 新增列定义 -->
+    <sql id="tbInsertColumns">
+		group_id,
+		normal_group,
+		important_group,
+		normal_fix,
+		important_fix,
+		normal_random,
+		important_random,
+		create_date,
+		modify_date
+	</sql>
+
+    <!-- 新增 抽取规则分组模式配置-->
+    <insert id="insert" parameterType="configRuleGroup" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES(
+        #{groupId},
+        #{normalGroup},
+        #{importantGroup},
+        #{normalFix},
+        #{importantFix},
+        #{normalRandom},
+        #{importantRandom},
+        sysdate(),
+        #{modifyDate}
+        )
+    </insert>
+
+    <!-- 批量新增 抽取规则分组模式配置-->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.groupId},
+            #{item.normalGroup},
+            #{item.importantGroup},
+            #{item.normalFix},
+            #{item.importantFix},
+            #{item.normalRandom},
+            #{item.importantRandom},
+            sysdate(),
+            #{item.modifyDate}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改 抽取规则分组模式配置-->
+    <update id="update" parameterType="configRuleGroup">
+        UPDATE
+        <include refid="tableName"/>
+        <set>
+            <if test="groupId != null">group_id = #{groupId},</if>
+            <if test="normalGroup != null">normal_group = #{normalGroup},</if>
+            <if test="importantGroup != null ">important_group = #{importantGroup},</if>
+            <if test="normalFix != null">normal_fix = #{normalFix},</if>
+            <if test="importantFix != null">important_fix = #{importantFix},</if>
+            <if test="normalRandom != null">normal_random = #{normalRandom},</if>
+            <if test="importantRandom != null">important_random = #{importantRandom},</if>
+            <if test="modifyDate != null">modify_date = #{modifyDate}</if>
+        </set>
+        WHERE
+        id = #{id}
+    </update>
+
+    <!-- 删除 抽取规则分组模式配置-->
+    <delete id="delete" parameterType="int">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id = #{id}
+    </delete>
+
+
+    <!-- 批量删除 抽取规则分组模式配置-->
+    <delete id="deleteByIds" parameterType="list">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id IN
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+
+    <!-- 查询指定抽取规则分组模式配置 -->
+    <select id="queryByConfigRuleGroupId" parameterType="Integer" resultMap="configRuleGroupMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有抽取规则分组模式配置 -->
+    <select id="queryAllConfigRuleGroup" resultMap="configRuleGroupMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+    </select>
+
+    <!-- 多条件 查询抽取规则分组模式配置 -->
+    <select id="queryByCnd" resultMap="configRuleGroupMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        <where>
+            <if test="id != null">id = #{id}</if>
+            <if test="groupId != null">AND group_id = #{groupId}</if>
+            <if test="normalGroup != null">AND normal_group = #{normalGroup}</if>
+            <if test="importantGroup != null">AND important_group = #{importantGroup}</if>
+            <if test="normalFix != null">AND normal_fix = #{normalFix}</if>
+            <if test="importantFix != null">AND important_fix = #{importantFix}</if>
+            <if test="normalRandom != null">AND normal_random = #{normalRandom}</if>
+            <if test="importantRandom != null">AND important_random = #{importantRandom}</if>
+            <if test="createDate != null">AND create_date = #{createDate}</if>
+            <if test="modifyDate != null">AND modify_date = #{modifyDate}</if>
+        </where>
+    </select>
+
+    <!-- 查询指定管理机构的分组配置 -->
+    <select id="queryByGroupId" parameterType="Integer" resultMap="configRuleGroupMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE group_id = #{groupId}
+    </select>
+
+</mapper>

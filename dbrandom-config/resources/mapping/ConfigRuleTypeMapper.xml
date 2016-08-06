@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.dbr.rule.mapper.ConfigRuleTypeMapper">
+
+    <!-- 返回结果集映射 抽取规则分类比重配置 -->
+    <resultMap type="configRuleType" id="configRuleTypeMap">
+        <!-- 配置编号 -->
+        <id column="id" property="id"/>
+        <!-- 所属机构编号 -->
+        <result column="group_id" property="groupId"/>
+        <!-- 分类属性编号 -->
+        <result column="type_id" property="typeId"/>
+        <!-- 比重值 -->
+        <result column="proportion" property="proportion"/>
+    </resultMap>
+
+    <!-- 抽取规则分类比重配置 表名定义 -->
+    <sql id="tableName">t_config_rule_type</sql>
+
+    <!-- 抽取规则分类比重配置 所有列定义 -->
+    <sql id="tbAllColumns">
+		id,
+		group_id,
+		type_id,
+		proportion
+	</sql>
+
+    <!-- 抽取规则分类比重配置 新增列定义 -->
+    <sql id="tbInsertColumns">
+		group_id,
+		type_id,
+		proportion
+	</sql>
+
+    <!-- 新增 抽取规则分类比重配置-->
+    <insert id="insert" parameterType="configRuleType" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES(
+        #{groupId},
+        #{typeId},
+        #{proportion}
+        )
+    </insert>
+
+    <!-- 批量新增 抽取规则分类比重配置-->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.groupId},
+            #{item.typeId},
+            #{item.proportion}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改 抽取规则分类比重配置-->
+    <update id="update" parameterType="configRuleType">
+        UPDATE
+        <include refid="tableName"/>
+        <set>
+            <if test="groupId != null">group_id = #{groupId},</if>
+            <if test="typeId != null">type_id = #{typeId},</if>
+            <if test="proportion != null">proportion = #{proportion}</if>
+        </set>
+        WHERE
+        id = #{id}
+    </update>
+
+    <!-- 删除 抽取规则分类比重配置-->
+    <delete id="delete" parameterType="int">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id = #{id}
+    </delete>
+
+    <!-- 批量删除 抽取规则分类比重配置-->
+    <delete id="deleteByIds" parameterType="list">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id IN
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <!-- 根据管理机构编号 批量删除 抽取规则分类比重配置-->
+    <delete id="deleteByGroupId" parameterType="int">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        group_id = #{groupId}
+    </delete>
+
+
+    <!-- 查询指定抽取规则分类比重配置 -->
+    <select id="queryByConfigRuleTypeId" parameterType="Integer" resultMap="configRuleTypeMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有抽取规则分类比重配置 -->
+    <select id="queryAllConfigRuleType" resultMap="configRuleTypeMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+    </select>
+
+    <!-- 多条件 查询抽取规则分类比重配置 -->
+    <select id="queryByCnd" resultMap="configRuleTypeMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        <where>
+            <if test="id != null">id = #{id}</if>
+            <if test="groupId != null">AND group_id = #{groupId}</if>
+            <if test="typeId != null">AND type_id = #{typeId}</if>
+            <if test="proportion != null">AND proportion = #{proportion}</if>
+        </where>
+    </select>
+
+    <!-- 查询指定管理机构抽取分类配置 -->
+    <select id="queryByGroupId" parameterType="Integer" resultMap="configRuleTypeMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE group_id = #{groupId}
+    </select>
+
+</mapper>

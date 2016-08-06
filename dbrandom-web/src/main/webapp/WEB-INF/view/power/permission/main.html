@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+    <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'权限', styles:'bootstrap,font-awesome,animate,style,bootstrap-table,ztree'}){}%>
+    </head>
+  <body>
+
+    <div class="wrapper wrapper-content">
+      <div class="row">
+        <div class="col-sm-12" >
+          <!-- START 内容部分 -->
+
+            <!-- START 右侧数据 -->
+                <!-- START 操作按钮 -->
+                <div id="toolbar" class="btn-group" style="margin-bottom:5px;">
+                  <button type="button" class="add-btn btn btn-sm btn-success"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 新增</button>
+                  <button type="button" class="del-btn btn btn-sm btn-danger"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> 删除</button>
+                </div>
+                <!-- END 操作按钮 -->
+                
+                <!-- START 数据表格 -->
+                <table id="powerpermissiontable"
+                           data-toolbar="#toolbar"
+                           data-side-pagination="server"
+                           data-pagination="true"
+                           data-resizable="true"
+                           data-show-columns="true"
+                           data-show-toggle="true"
+                           data-side-pagination="server"
+                           data-url="/power/permission/findall.do"
+                           data-page-size="15">
+                </table>
+                <!-- END 数据表格 -->
+                
+            <!-- END 右侧数据 -->
+          <!-- END 内容部分 -->
+        </div>
+      </div>
+    </div>
+
+    <%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,bootstrap-table,bootstrap-table-zh-CN,layer,ztree'}){}%>
+
+    <script>
+    var $powerpermissiontable = $('#powerpermissiontable'),selections=[];
+    $(function(){
+        
+        //START 表格配置
+        $powerpermissiontable.bootstrapTable({
+            height: getHeight(),
+            columns: [
+                    {
+                        field: 'state',
+                        checkbox: true,
+                        align: 'center',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '编号',
+                        field: 'id',
+                        align: 'left',
+                        valign: 'middle',
+                        visible: false
+                    },
+                    {
+                        title: '权限名称',
+                        field: 'permissionName',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '权限编码',
+                        field: 'permissionCode',
+                        align: 'left',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                    {
+                        title: '排序号',
+                        field: 'orderId',
+                        align: 'left',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        width: 200,
+                        align: 'center',
+                        valign: 'middle',
+                        formatter: optFormatter
+                    }
+            ],
+            onLoadSuccess : function(){
+                //修改权限信息表
+                $('.edit-powerpermission-btn').on('click',function(){
+                    var powerpermissionid = $(this).attr('data-val');
+                    layer.open({
+                        title: '修改权限',
+                        type: 2,
+                        area: ['780px', '300px'],
+                        content: ['/power/permission/editpage.do?id='+powerpermissionid, 'no']
+                    });
+                });
+            
+                //删除权限信息表
+                $('.del-powerpermission-btn').on('click',function(){
+
+                    var delid = $(this).attr('data-val'),delname =$(this).attr('data-val-name');
+                    layer.confirm('确定要删除权限？<br>[<strong>'+delname+'</strong>]', {
+                        btn: ['确定','取消'],title:'提示'
+                    }, function(){
+                        $.post('/power/permission/delete.do',{ids: delid},function(data){
+                            if( data.ok ){
+                                layer.msg(data.msg,{icon: 1,time: 2000},function(){
+                                    //刷新页面
+                                    $powerpermissiontable.bootstrapTable('refresh');
+                                });
+                            }else{
+                                layer.msg(data.msg,{icon: 0,time: 2000});
+                            }
+                        });
+                    });
+
+                });
+                
+            }
+        });
+        //END 表格配置
+        
+        //新增权限信息表
+        $('.add-btn').on('click',function(){//新增
+            layer.open({
+                title: '新增权限',
+                type: 2,
+                area: ['790px', '300px'],
+                skin: 'layer-ext-espresso', 
+                content: ['/power/permission/addpage.do', 'no']
+            });
+        });
+        
+        //删除权限信息表
+        $('.del-btn').on('click',function(){
+            var selDatas = $powerpermissiontable.bootstrapTable('getSelections');
+            if( selDatas.length == 0 ){
+                layer.msg('请选择要删除的权限',{icon: 0,shade: [0.8, '#393D49'],time: 2000});
+            }else{
+                var ids = [],names = [];
+                $.each(selDatas,function(i,d){
+                    ids.push(d.permissionId);
+                    names.push(d.permissionName);
+                });
+                ids = ids.join(',');
+                names = names.join(',');
+
+                layer.confirm('确定要删除权限？<br>[<strong>'+names+'</strong>]', {
+                    btn: ['确定','取消'],title:'提示'
+                }, function(){
+                    $.post('/power/permission/delete.do',{ids: ids},function(data){
+                        if( data.ok ){
+                            layer.msg(data.msg,{icon: 1,time: 2000},function(){
+                                //刷新页面
+                                $powerpermissiontable.bootstrapTable('refresh');
+                            });
+                        }else{
+                            layer.msg(data.msg,{icon: 0,time: 2000});
+                        }
+                    });
+                });
+
+            }
+        });
+        
+        //表格高度自适应
+        $(window).resize(function () {
+            $powerpermissiontable.bootstrapTable('resetView', {
+                height: getHeight()
+            });
+        });
+    });
+    
+    //操作菜单
+    function optFormatter(value,row){
+        var content = '<button class="edit-powerpermission-btn btn btn-xs btn-info" data-val="'+row.id+'" title="修改"><i class="fa fa-edit"></i>  </button>';
+        content += '&nbsp;<button class="del-powerpermission-btn btn btn-xs btn-danger" data-val="'+row.id+'" data-val-name="'+row.permissionName+'" title="删除"><i class="fa fa-trash-o"></i>  </button>';
+        return content;
+    }
+    
+    //表格高度计算
+    function getHeight() {
+        return $(window).height() - $('.btn-group').outerHeight(true) - $('.breadcrumb').outerHeight(true) - 100;
+    }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.dbr.manageobj.mapper.CompanyPointMapper">
+
+    <!-- 返回结果集映射 企业监管点位信息 -->
+    <resultMap type="companyPoint" id="companyPointMap">
+        <!-- 点位编号 -->
+        <id column="id" property="id"/>
+        <!-- 所属企业编号 -->
+        <result column="company_id" property="companyId"/>
+        <!-- 所属管理机构编号 -->
+        <result column="group_id" property="groupId"/>
+        <!-- 点位名称 -->
+        <result column="point_name" property="pointName"/>
+        <!-- 点位描述 -->
+        <result column="point_desc" property="pointDesc"/>
+        <!-- 创建时间 -->
+        <result column="create_date" property="createDate"/>
+        <!-- 修改时间 -->
+        <result column="modify_date" property="modifyDate"/>
+        <!-- 删除标志 -->
+        <result column="deleted" property="deleted"/>
+        <!-- 排序号 -->
+        <result column="order_id" property="orderId"/>
+    </resultMap>
+
+    <!-- 企业监管点位信息 表名定义 -->
+    <sql id="tableName">t_company_point</sql>
+
+    <!-- 企业监管点位信息 所有列定义 -->
+    <sql id="tbAllColumns">
+		id,
+		company_id,
+		point_name,
+		point_desc,
+		create_date,
+		modify_date,
+		deleted,
+		group_id,
+		order_id
+	</sql>
+
+    <!-- 企业监管点位信息 新增列定义 -->
+    <sql id="tbInsertColumns">
+		company_id,
+		point_name,
+		point_desc,
+		create_date,
+		modify_date,
+		deleted,
+		group_id,
+		order_id
+	</sql>
+
+    <!-- 新增 企业监管点位信息-->
+    <insert id="insert" parameterType="companyPoint" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES(
+        #{companyId},
+        #{pointName},
+        #{pointDesc},
+        sysdate(),
+        #{modifyDate},
+        0,
+        #{groupId},
+        #{orderId}
+        )
+    </insert>
+
+    <!-- 批量新增 企业监管点位信息-->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.companyId},
+            #{item.pointName},
+            #{item.pointDesc},
+            sysdate(),
+            #{item.modifyDate},
+            0,
+            #{item.groupId},
+            #{item.orderId}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改 企业监管点位信息-->
+    <update id="update" parameterType="companyPoint">
+        UPDATE
+        <include refid="tableName"/>
+        <set>
+            <if test="companyId != null and companyId !=''">company_id = #{companyId},</if>
+            <if test="pointName != null and pointName !=''">point_name = #{pointName},</if>
+            <if test="pointDesc != null and pointDesc !=''">point_desc = #{pointDesc},</if>
+            <if test="createDate != null">create_date = #{createDate},</if>
+            <if test="modifyDate != null">modify_date = #{modifyDate},</if>
+            <if test="deleted != null">deleted = #{deleted},</if>
+            <if test="groupId != null">group_id = #{groupId},</if>
+            <if test="orderId != null">order_id = #{orderId}</if>
+        </set>
+        WHERE
+        id = #{id}
+    </update>
+
+    <!-- 删除 企业监管点位信息-->
+    <delete id="delete" parameterType="int">
+        UPDATE
+        <include refid="tableName"/>
+        SET
+        deleted = 1
+        WHERE
+        id = #{id}
+    </delete>
+
+    <!-- 批量删除 企业监管点位信息-->
+    <delete id="deleteByIds" parameterType="list">
+        UPDATE
+        <include refid="tableName"/>
+        SET
+        deleted = 1
+        WHERE
+        id IN
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <!-- 批量删除 管理机构下的企业监管点位信息-->
+    <delete id="deleteByGroupId" parameterType="int">
+        UPDATE
+        <include refid="tableName"/>
+        SET
+        deleted = 1
+        WHERE
+        group_id = #{groupId}
+    </delete>
+
+    <!-- 查询指定企业监管点位信息 -->
+    <select id="queryByCompanyPointId" parameterType="Integer" resultMap="companyPointMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有企业监管点位信息 -->
+    <select id="queryAllCompanyPoint" resultMap="companyPointMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE deleted = 0
+    </select>
+
+    <!-- 多条件 查询企业监管点位信息 -->
+    <select id="queryByCnd" resultMap="companyPointMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE deleted = 0
+        <if test="id != null">AND id = #{id}</if>
+        <if test="companyId != null">AND company_id = #{companyId}</if>
+        <if test="pointName != null and pointName !=''">AND point_name = #{pointName}</if>
+        <if test="pointDesc != null and pointDesc !=''">AND point_desc = #{pointDesc}</if>
+        <if test="createDate != null">AND create_date = #{createDate}</if>
+        <if test="modifyDate != null">AND modify_date = #{modifyDate}</if>
+        <if test="groupId != null">AND group_id = #{groupId}</if>
+        <if test="orderId != null">AND order_id = #{orderId}</if>
+    </select>
+
+</mapper>

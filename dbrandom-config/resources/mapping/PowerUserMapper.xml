@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.core.power.mapper.PowerUserMapper">
+
+    <!-- 返回结果集映射 用户信息表 -->
+    <resultMap type="powerUser" id="powerUserMap">
+        <!-- 用户编号 -->
+        <id column="user_id" property="id"/>
+        <!-- 用户账号 -->
+        <result column="user_account" property="userAccount"/>
+        <!-- 用户登录密码 -->
+        <result column="user_password" property="userPassword"/>
+        <!-- 用户盐 -->
+        <result column="user_salt" property="userSalt"/>
+        <!-- 用户昵称 -->
+        <result column="user_nickname" property="userNickname"/>
+        <!-- 用户姓名 -->
+        <result column="user_realname" property="userRealname"/>
+        <!-- 用户性别 -->
+        <result column="user_sex" property="userSex"/>
+        <!-- 用户年龄 -->
+        <result column="user_age" property="userAge"/>
+        <!-- 出生日期 -->
+        <result column="user_birthday" property="userBirthday"/>
+        <!-- 用户手机 -->
+        <result column="user_phone" property="userPhone"/>
+        <!-- 用户邮箱 -->
+        <result column="user_email" property="userEmail"/>
+        <!-- 删除标志 -->
+        <result column="deleted" property="deleted"/>
+        <!-- 锁定标志 -->
+        <result column="locked" property="locked"/>
+        <!-- 启用标志 -->
+        <result column="enabled" property="enabled"/>
+        <!-- 最后登录时间 -->
+        <result column="last_login_date" property="lastLoginDate"/>
+        <!-- 登录失败时间 -->
+        <result column="failed_login_date" property="failedLoginDate"/>
+        <!-- 登录失败次数 -->
+        <result column="failed_count" property="failedCount"/>
+        <!-- 创建时间 -->
+        <result column="create_date" property="createDate"/>
+        <!-- 更新时间 -->
+        <result column="modify_date" property="modifyDate"/>
+        <!-- 所属机构编号 -->
+        <result column="group_id" property="groupId"/>
+    </resultMap>
+
+    <!-- 用户信息表 表名定义 -->
+    <sql id="tableName">power_user</sql>
+    <sql id="relGroupTableName">rel_group_user</sql>
+
+    <!-- 用户信息表 所有列定义 -->
+    <sql id="tbAllColumns">
+		user_id,
+		user_account,
+		user_password,
+		user_salt,
+		user_nickname,
+		user_realname,
+		user_sex,
+		user_age,
+		user_birthday,
+		user_phone,
+		user_email,
+		deleted,
+		locked,
+		enabled,
+		last_login_date,
+		failed_login_date,
+		failed_count,
+		create_date,
+		modify_date
+	</sql>
+    <!-- 用户信息表 查询列定义 -->
+    <sql id="tbSelectAllColumns">
+		tba.user_id,
+		tba.user_account,
+		tba.user_password,
+		tba.user_salt,
+		tba.user_nickname,
+		tba.user_realname,
+		tba.user_sex,
+		tba.user_age,
+		tba.user_birthday,
+		tba.user_phone,
+		tba.user_email,
+		tba.deleted,
+		tba.locked,
+		tba.enabled,
+		tba.last_login_date,
+		tba.failed_login_date,
+		tba.failed_count,
+		tba.create_date,
+		tba.modify_date,
+		tbb.group_id
+	</sql>
+
+    <!-- 用户信息表 新增列定义 -->
+    <sql id="tbInsertColumns">
+		user_account,
+		user_password,
+		user_salt,
+		user_nickname,
+		user_realname,
+		user_sex,
+		user_age,
+		user_birthday,
+		user_phone,
+		user_email,
+		deleted,
+		locked,
+		enabled,
+		last_login_date,
+		failed_login_date,
+		failed_count,
+		create_date,
+		modify_date
+	</sql>
+
+    <!-- 新增 用户信息表-->
+    <insert id="insert" parameterType="powerUser" useGeneratedKeys="true" keyColumn="user_id" keyProperty="id">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES(
+        #{userAccount},
+        #{userPassword},
+        #{userSalt},
+        #{userNickname},
+        #{userRealname},
+        #{userSex},
+        #{userAge},
+        #{userBirthday},
+        #{userPhone},
+        #{userEmail},
+        0,
+        #{locked},
+        #{enabled},
+        #{lastLoginDate},
+        #{failedLoginDate},
+        0,
+        sysdate(),
+        #{modifyDate}
+        )
+    </insert>
+
+    <!-- 批量新增 用户信息表-->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.userAccount},
+            #{item.userPassword},
+            #{item.userSalt},
+            #{item.userNickname},
+            #{item.userRealname},
+            #{item.userSex},
+            #{item.userAge},
+            #{item.userBirthday},
+            #{item.userPhone},
+            #{item.userEmail},
+            0,
+            #{item.locked},
+            #{item.enabled},
+            #{item.lastLoginDate},
+            #{item.failedLoginDate},
+            0,
+            sysdate(),
+            #{item.modifyDate}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 新增用户与组织机构关系 -->
+    <insert id="insertRelGroupUser" parameterType="relGroupUser">
+        INSERT INTO
+        <include refid="relGroupTableName"/>
+        (
+        user_id,
+        group_id
+        )
+        VALUES(
+        #{userId},
+        #{groupId}
+        )
+    </insert>
+
+    <!-- 批量新增用户与组织机构关系 -->
+    <insert id="batchInsertRelGroupUser" parameterType="relGroupUser">
+        INSERT INTO
+        <include refid="relGroupTableName"/>
+        (
+        user_id,
+        group_id
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.userId},
+            #{item.groupId}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改 用户信息表-->
+    <update id="update" parameterType="powerUser">
+        UPDATE
+        <include refid="tableName"/>
+        SET
+        <if test="userAccount != null and userAccount !=''">
+            user_account = #{userAccount},
+        </if>
+        <if test="userPassword != null and userPassword !=''">
+            user_password = #{userPassword},
+        </if>
+        <if test="userSalt != null and userSalt !=''">
+            user_salt = #{userSalt},
+        </if>
+        <if test="userNickname != null and userNickname !=''">
+            user_nickname = #{userNickname},
+        </if>
+        <if test="userRealname != null and userRealname !=''">
+            user_realname = #{userRealname},
+        </if>
+        <if test="userSex != null">
+            user_sex = #{userSex},
+        </if>
+        <if test="userAge != null">
+            user_age = #{userAge},
+        </if>
+        <if test="userBirthday != null">
+            user_birthday = #{userBirthday},
+        </if>
+        <if test="userPhone != null and userPhone !=''">
+            user_phone = #{userPhone},
+        </if>
+        <if test="userEmail != null and userEmail !=''">
+            user_email = #{userEmail},
+        </if>
+        <if test="locked != null">
+            locked = #{locked},
+        </if>
+        <if test="enabled != null">
+            enabled = #{enabled},
+        </if>
+        <if test="lastLoginDate != null">
+            last_login_date = #{lastLoginDate},
+        </if>
+        <if test="failedLoginDate != null">
+            failed_login_date = #{failedLoginDate},
+        </if>
+        <if test="failedCount != null">
+            failed_count = #{failedCount},
+        </if>
+        modify_date = sysdate()
+        WHERE
+        user_id = #{id}
+    </update>
+
+    <!-- 删除 用户信息表-->
+    <delete id="delete" parameterType="long">
+        UPDATE
+        <include refid="tableName"/>
+        SET
+        deleted = 1
+        WHERE
+        user_id = #{id}
+    </delete>
+
+
+    <!-- 批量删除 用户信息表-->
+    <delete id="deleteByIds" parameterType="list">
+        UPDATE
+        <include refid="tableName"/>
+        SET
+        deleted = 1
+        WHERE
+        user_id IN
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+
+    <!-- 查询指定用户信息表 -->
+    <select id="queryByPowerUserId" parameterType="long" resultMap="powerUserMap">
+        SELECT
+        <include refid="tbSelectAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN
+        <include refid="relGroupTableName"/>
+        tbb ON tbb.user_id = tba.user_id
+        WHERE tba.user_id = #{id}
+    </select>
+
+    <!-- 查询指定账号用户信息表 -->
+    <select id="queryByPowerUserAccount" parameterType="string" resultMap="powerUserMap">
+        SELECT
+        <include refid="tbSelectAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN
+        <include refid="relGroupTableName"/>
+        tbb ON tbb.user_id = tba.user_id
+        WHERE tba.user_account = #{userAccount}
+        AND tba.deleted = 0
+    </select>
+
+    <!-- 查询所有用户信息表 -->
+    <select id="queryAllPowerUser" resultMap="powerUserMap">
+        SELECT
+        <include refid="tbSelectAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN
+        <include refid="relGroupTableName"/>
+        tbb ON tbb.user_id = tba.user_id
+        WHERE tba.deleted = 0
+    </select>
+
+    <!-- 查询指定组织机构下用户信息表 -->
+    <select id="queryByGroupId" resultMap="powerUserMap">
+        SELECT
+        <include refid="tbSelectAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN
+        <include refid="relGroupTableName"/>
+        tbb ON tbb.user_id = tba.user_id
+        WHERE tba.deleted = 0 AND tbb.group_id = #{groupId}
+    </select>
+
+    <!-- 查询指定角色下的用户信息 -->
+    <select id="queryByRoleId" resultMap="powerUserMap">
+
+    </select>
+
+    <!-- 查询指定权限下的用户信息 -->
+    <select id="queryByPermissionId" resultMap="powerUserMap">
+
+    </select>
+
+    <!-- 查询指定菜单关联的用户信息 -->
+    <select id="queryByMenuId" resultMap="powerUserMap">
+
+    </select>
+
+</mapper>

@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.core.power.mapper.DictDetailMapper">
+
+    <!-- 返回结果集映射 数据字典详情信息 -->
+    <resultMap type="dictDetail" id="dictDetailMap">
+        <!-- id -->
+        <id column="id" property="id"/>
+        <!-- 所属分类 -->
+        <result column="dict_type" property="dictType"/>
+        <!-- 名称 -->
+        <result column="detail_name" property="detailName"/>
+        <!-- 编码 -->
+        <result column="detail_code" property="detailCode"/>
+        <!-- 排序号 -->
+        <result column="detail_sort" property="detailSort"/>
+        <!-- 类型 -->
+        <result column="detail_type" property="detailType"/>
+        <!-- 状态 -->
+        <result column="detail_state" property="detailState"/>
+        <!-- 内容 -->
+        <result column="detail_content" property="detailContent"/>
+        <!-- 备注 -->
+        <result column="detail_remark" property="detailRemark"/>
+        <!-- 创建时间 -->
+        <result column="create_date" property="createDate"/>
+        <!-- 修改时间 -->
+        <result column="modify_date" property="modifyDate"/>
+        <!-- 删除标志 -->
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <!-- 数据字典详情信息 表名定义 -->
+    <sql id="tableName">t_dict_detail</sql>
+
+    <!-- 数据字典详情信息 所有列定义 -->
+    <sql id="tbAllColumns">
+		id,
+		dict_type,
+		detail_name,
+		detail_code,
+		detail_sort,
+		detail_type,
+		detail_state,
+		detail_content,
+		detail_remark,
+		create_date,
+		modify_date,
+		deleted
+	</sql>
+
+    <!-- 数据字典详情信息 join -->
+    <sql id="tbAllColumnsWithAlias">
+		tba.id,
+		tba.dict_type,
+		tba.detail_name,
+		tba.detail_code,
+		tba.detail_sort,
+		tba.detail_type,
+		tba.detail_state,
+		tba.detail_content,
+		tba.detail_remark,
+		tba.create_date,
+		tba.modify_date,
+		tba.deleted
+	</sql>
+
+    <!-- 数据字典详情信息 新增列定义 -->
+    <sql id="tbInsertColumns">
+		dict_type,
+		detail_name,
+		detail_code,
+		detail_sort,
+		detail_type,
+		detail_state,
+		detail_content,
+		detail_remark,
+		create_date,
+		modify_date,
+		deleted
+	</sql>
+
+    <!-- 新增 数据字典详情信息-->
+    <insert id="insert" parameterType="dictDetail" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES(
+        #{dictType},
+        #{detailName},
+        #{detailCode},
+        #{detailSort},
+        #{detailType},
+        #{detailState},
+        #{detailContent},
+        #{detailRemark},
+        sysdate(),
+        #{modifyDate},
+        0
+        )
+    </insert>
+
+    <!-- 批量新增 数据字典详情信息-->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.dictType},
+            #{item.detailName},
+            #{item.detailCode},
+            #{item.detailSort},
+            #{item.detailType},
+            #{item.detailState},
+            #{item.detailContent},
+            #{item.detailRemark},
+            sysdate(),
+            #{item.modifyDate},
+            0
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改 数据字典详情信息-->
+    <update id="update" parameterType="dictDetail">
+        UPDATE
+        <include refid="tableName"/>
+        <set>
+            <if test="dictType != null and dictType !=''">dict_type = #{dictType},</if>
+            <if test="detailName != null and detailName !=''">detail_name = #{detailName},</if>
+            <if test="detailCode != null and detailCode !=''">detail_code = #{detailCode},</if>
+            <if test="detailSort != null and detailSort !=''">detail_sort = #{detailSort},</if>
+            <if test="detailType != null and detailType !=''">detail_type = #{detailType},</if>
+            <if test="detailState != null and detailState !=''">detail_state = #{detailState},</if>
+            <if test="detailContent != null and detailContent !=''">detail_content = #{detailContent},</if>
+            <if test="detailRemark != null and detailRemark !=''">detail_remark = #{detailRemark},</if>
+            <if test="createDate != null">create_date = #{createDate},</if>
+            <if test="modifyDate != null">modify_date = #{modifyDate}</if>
+        </set>
+        WHERE
+        id = #{id}
+    </update>
+
+    <!-- 删除 数据字典详情信息-->
+    <delete id="delete" parameterType="int">
+        UPDATE
+        <include refid="tableName"/>
+        SET
+        deleted = 1
+        WHERE
+        id = #{id}
+    </delete>
+
+
+    <!-- 批量删除 数据字典详情信息-->
+    <delete id="deleteByIds" parameterType="list">
+        UPDATE
+        <include refid="tableName"/>
+        SET
+        deleted = 1
+        WHERE
+        id IN
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+
+    <!-- 查询指定数据字典详情信息 -->
+    <select id="queryByDictDetailId" parameterType="Integer" resultMap="dictDetailMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有数据字典详情信息 -->
+    <select id="queryAllDictDetail" resultMap="dictDetailMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE
+        deleted = 0
+    </select>
+
+    <!-- 多条件 查询数据字典详情信息 -->
+    <select id="queryByCnd" resultMap="dictDetailMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE deleted = 0
+        <if test="id != null and id !=''">AND id = #{id}</if>
+        <if test="dictType != null and dictType !=''">AND dict_type = #{dictType}</if>
+        <if test="detailName != null and detailName !=''">AND detail_name = #{detailName}</if>
+        <if test="detailCode != null and detailCode !=''">AND detail_code = #{detailCode}</if>
+        <if test="detailSort != null and detailSort !=''">AND detail_sort = #{detailSort}</if>
+        <if test="detailType != null and detailType !=''">AND detail_type = #{detailType}</if>
+        <if test="detailState != null and detailState !=''">AND detail_state = #{detailState}</if>
+        <if test="detailContent != null and detailContent !=''">AND detail_content = #{detailContent}</if>
+        <if test="detailRemark != null and detailRemark !=''">AND detail_remark = #{detailRemark}</if>
+        <if test="createDate != null">AND create_date = #{createDate}</if>
+        <if test="modifyDate != null">AND modify_date = #{modifyDate}</if>
+    </select>
+
+    <!-- 查询指定分类代码下的字典项 -->
+    <select id="queryByTypeCode" resultMap="dictDetailMap">
+        SELECT
+        <include refid="tbAllColumnsWithAlias"/>
+        FROM
+        <include refid="tableName"/>
+        tba
+        LEFT JOIN t_dict tbb on tbb.id = tba.dict_type
+        WHERE tba.deleted = 0 AND tbb.type_code = #{typeCode}
+        ORDER BY tba.detail_sort
+    </select>
+
+</mapper>

@@ -1,0 +1,109 @@
+				<ul class="nav" id="side-menu">
+                    <li class="nav-header">
+                        <div class="dropdown profile-element">
+                            <span style="font-size: 20px;color: #fff;">${app_info_name}</span>
+                            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                                <span class="clear">
+                                <!--<span class="block m-t-xs"><strong class="font-bold">${user.userNickname}</strong></span>-->
+                                <span class="text-muted text-xs block">${user.userNickname}<b class="caret"></b></span>
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu animated fadeInRight m-t-xs">
+                                <li>
+                                	<a class="changepwd-btn" href="javascript:;">修改密码</a>
+                                </li>
+                                <li>
+                                	<a class="changeprofile-btn" href="javascript:;">个人资料</a>
+                                </li>
+                                <li class="divider"></li>
+                                <li><a href="/admin/logout.html">安全退出</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="logo-element"><img alt="image" src="/assets/img/logo.png" width="32"/></div>
+                    </li>
+                    
+                    <%
+                    %>
+
+                    <%
+                    if(has(menus)){
+                        for(menu in menus){
+                            var hasAddUlstart = false;
+                            var hasAddUlend = false;
+                            var hasChildren = false;
+                            if(menu.menuPid==0){
+                                for(submenucheck in menus){
+                                    if( submenucheck.menuPid == menu.id ){
+                                        hasChildren = true;
+                                    }
+                                }
+                    %>
+                    <li>
+                        <a ${decode(hasChildren,true,"",false,"class='J_menuItem' ","")} href="${decode(hasChildren,true,'#',false,menu.menuUrl,'#')}" title="${menu.menuName}">
+                            <i class="fa ${menu.menuIcon}"></i>
+                            <span class="nav-label">${menu.menuName}</span>
+                            ${decode(hasChildren,true,'<span class="fa arrow"></span>',false,"","")}
+                        </a>
+
+                        <%
+                            //二级菜单
+                            for(submenu in menus){
+                                if( submenu.menuPid == menu.id ){
+                                    if( !hasAddUlstart ){
+                                        print('<ul class="nav nav-second-level">');
+                                        hasAddUlstart = true;
+                                    }
+
+                                    var hasThirdLevelMenu = false;
+                                    for( checkthirdlevelmenu in menus ){
+                                        if( checkthirdlevelmenu.menuPid == submenu.id ){
+                                            hasThirdLevelMenu = true;
+                                        }
+                                    }
+                        %>
+                            <li>
+                                <a ${decode(hasThirdLevelMenu,true,'',false,'class="J_menuItem"','')} href="${decode(hasThirdLevelMenu,true,'#',false,submenu.menuUrl,'#')}" title="${submenu.menuName}">
+                                    <i class="fa ${submenu.menuIcon}"></i>${submenu.menuName}${decode(hasThirdLevelMenu,true,'<span class="fa arrow"></span>',false,"","")}</a>
+                                <%
+                                    var hasAddThirdLevelUlstart = false;
+                                    var hasAddThirdLevelUlend = false;
+
+                                    //三级菜单
+                                    for( thirdlevelmenu in menus ){
+                                        if( thirdlevelmenu.menuPid == submenu.id ){
+                                            if( !hasAddThirdLevelUlstart ){
+                                                print('<ul class="nav nav-third-level">');
+                                                hasAddThirdLevelUlstart = true;
+                                            }
+                                %>
+                                <li>
+                                    <a class="J_menuItem" href="${thirdlevelmenu.menuUrl}" title="${thirdlevelmenu.menuName}"><i class="fa ${thirdlevelmenu.menuIcon}"></i>${thirdlevelmenu.menuName}</a>
+                                </li>
+                                <%
+                                        }
+                                    }
+                                    if( hasAddThirdLevelUlstart && !hasAddThirdLevelUlend ){
+                                        print('</ul>');
+                                    }
+                                    hasAddThirdLevelUlend = true;
+                                %>
+                            </li>
+                        <%
+
+                                }//end if
+                            }//end submenu loop
+
+                            if( hasAddUlstart && !hasAddUlend ){
+                                print('</ul>');
+                            }
+                            hasAddUlend = true;
+                        %>
+                    </li>
+                    <%
+                            }//end level1 menu if
+                        }//end menu loop
+                    }
+                    %>
+
+                </ul>

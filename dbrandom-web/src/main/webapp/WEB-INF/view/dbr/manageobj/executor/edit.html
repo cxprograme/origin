@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+	  <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'修改执法者基本信息', styles:'bootstrap,font-awesome,animate,style,dtvalidate,awesome-checkbox'}){%>
+	  <style type="text/css">
+		  body{padding-top:10px;}
+	  </style>
+	  <%}%>
+  </head>
+  <body>
+	<!-- START 内容部分 -->
+	<div class="container">
+		<form class="form-horizontal" id="info-form" method="post">
+			<input type="hidden" name="id" value="${lawExecutor.id}"/>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">姓名</label>
+				<div class="col-sm-6">
+					<input type="text" id="name" name="name" class="form-control" valid="r" validTitle="姓名" validInfoArea="name_info_area" value="${lawExecutor.name}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="name_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">归属</label>
+				<div class="col-sm-6">
+					<!--${lawExecutor.groupId}-->
+					<select id="groupId" name="groupId" class="form-control" valid="r" validTitle="归属" validInfoArea="groupId_info_area">
+						<option value="">选择归属</option>
+						<%
+						for(var group in groups){
+							if(group.groupType < 3){
+						%>
+						<option value="${group.id}" ${decode(group.id, parseLong(lawExecutor.groupId), "selected","")}>${group.groupName}</option>
+						<%	}
+						}%>
+					</select>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="groupId_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">科室</label>
+				<div class="col-sm-6">
+					<select id="departmentId" name="departmentId" class="form-control" valid="r" validTitle="科室" validInfoArea="departmentId_info_area">
+						<option value="">选择科室</option>
+						<%
+						for(var group in groups){
+							if(group.groupType > 2){
+						%>
+						<option value="${group.id}" ${decode(group.id, parseLong(lawExecutor.departmentId), "selected","")}>${group.groupName}</option>
+						<%	}
+						}%>
+					</select>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="departmentId_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">职务</label>
+				<div class="col-sm-6">
+					<select id="dutyId" name="dutyId" class="form-control" valid="r" validTitle="职务" validInfoArea="dutyId_info_area">
+						<option value="">选择职务</option>
+						<%for(var dict in dictFun("1002","")){%>
+						<option value="${dict.detailCode}" ${decode(dict.detailCode, lawExecutor.dutyId, "selected", "")}>${dict.detailName}</option>
+						<%}%>
+					</select>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="dutyId_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">电话</label>
+				<div class="col-sm-6">
+					<input type="text" id="mobile" name="mobile" class="form-control" valid="r|mobile" validTitle="联系电话" validInfoArea="mobile_info_area" value="${lawExecutor.mobile}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="mobile_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">资质 </label>
+				<div class="col-sm-6">
+					<div class="radio radio-primary radio-inline">
+						<input type="radio" id="aptitudes-1" name="aptitudes" valid="r" validTitle="资质" validInfoArea="aptitudes_info_area" value="1" ${decode(lawExecutor.aptitudes,1,"checked","")}/>
+						<label for="aptitudes-1"> 资深 </label>
+					</div>
+					<div class="radio radio-primary radio-inline">
+						<input type="radio" id="aptitudes-2" name="aptitudes" valid="r" validTitle="资质" validInfoArea="aptitudes_info_area" value="2" ${decode(lawExecutor.aptitudes,2,"checked","")}/>
+						<label for="aptitudes-2"> 普通 </label>
+					</div>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="aptitudes_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">工作量</label>
+				<div class="col-sm-6">
+					<select id="workload" name="workload" class="form-control" valid="r" validTitle="工作量" validInfoArea="workload_info_area">
+						<option value="">选择工作量</option>
+						<option value="100" ${decode(lawExecutor.workload,100,"selected","")}>100%</option>
+						<option value="50" ${decode(lawExecutor.workload,50,"selected","")}>50%</option>
+						<option value="0" ${decode(lawExecutor.workload,0,"selected","")}>0%</option>
+					</select>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="workload_info_area"></p></div>
+			</div>
+
+			<div class="form-group">
+				<div class="col-sm-offset-2 col-sm-10">
+					<button type="button" class="save-btn btn btn-primary">
+						<i class="fa fa-save"></i> 保存
+					</button>
+				</div>
+			</div>
+		</form>
+	</div>
+	<!-- END 内容部分 -->
+	
+	<!-- START 公共脚本 -->
+    <%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,dtvalidate,dtvalidate-lang-zh_cn'}){}%>
+	<!-- END 公共脚本 -->
+	<script>
+	var cvalidator;
+	$(function(){
+		//初始化验证器
+		cvalidator = $('#info-form').dtValidator();
+		
+		//提交表单
+		$('.save-btn').on('click',function(){
+			if(!cvalidator.validResult()){
+				$.fn.DtValidator.tools.toast('验证失败！', 'error', 2000);
+				return;
+			}
+			
+			//数据提交
+			$.post('/lawexecutor/info/usave.do',$('#info-form').serialize(),function(data){
+				if( data.ok ){
+					parent.layer.msg(data.msg,{icon:1,time:1500,shade: [0.8, '#393D49']}, function(){
+						parent.$lawexecutortable.bootstrapTable('refresh');
+						parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭弹窗
+					});
+				}else{
+					parent.layer.msg(data.msg,{icon: 0,time:1500,shade: [0.8, '#393D49']});
+				}
+			});
+		});
+    });
+    </script>
+  </body>
+</html>

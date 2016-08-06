@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'添加组织机构', styles:'bootstrap,font-awesome,animate,style,dtvalidate,laydate'}){%>
+    <style type="text/css">
+        body{padding-top:10px;}
+    </style>
+    <%}%>
+</head>
+<body>
+<!-- START 内容部分 -->
+<div class="container">
+    <form class="form-horizontal" id="info-form" method="post">
+    <input type="hidden" name="id" value="${configHoliday.id}">
+        <div class="form-group">
+            <div class="col-sm-12">
+                <label class="col-sm-4 control-label text-right">开始时间</label>
+                <input type="text" class="" name="holidayDate" id="holidayDate"
+                       value="${configHoliday.holidayDate,dateFormat='yyyy-MM-dd'}">
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-12">
+                <label class="col-sm-4 control-label text-right">节日名称</label>
+                <input type="text" class="" name="holidayName" id="holidayName"
+                       value="${configHoliday.holidayName}">
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-12">
+                <label class="col-sm-4 control-label text-right">日期状态</label>
+                <input type="radio" class="rbt" name="status" id="rbt1" value="1" >休息日
+                <input type="radio" class="rbt" name="status" id="rbt2" value="0"  >工作日
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10" style="text-align: center">
+                <button type="button" class="save-btn btn btn-primary" >
+                    <i class="fa fa-save"></i> 保存
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+<!-- END 内容部分 -->
+
+<%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,dtvalidate,dtvalidate-lang-zh_cn,moment,laydate,moment-date'}){}%>
+
+<script>
+    $(function() {
+        //日期插件配置
+        laydate({
+            elem: '#holidayDate',
+            format: 'YYYY-MM-DD', // 分隔符可以任意定义，该例子表示只显示年月
+            festival: true, //显示节日
+            fixed: false,
+            choose: function(datas){ //选择日期完毕的回调
+
+            }
+        });
+
+        //页面radio状态的控制
+        var status="${configHoliday.status}";
+        if(status==1){
+            $("#rbt1").attr("checked","checked");
+        }else{
+            $("#rbt2").attr("checked","checked");
+        }
+
+        //初始化验证器
+        cvalidator = $('#info-form').dtValidator();
+
+        //提交表单
+        $('.save-btn').on('click',function(){
+            if(!cvalidator.validResult()){
+                $.fn.DtValidator.tools.toast('验证失败！', 'error', 2000);
+                return;
+            }
+
+            //数据提交
+            $.post('/holiday/usave.do',$('#info-form').serialize(),function(data){
+                if( data.ok ){
+                    parent.layer.msg(data.msg,{icon:1,time:2000,shade: [0.8, '#393D49']}, function(){
+                        //获取后台对象的id
+                        if(data.data.status==0){
+                            var id=data.data.id;
+                            parent.$calendar.fullCalendar('removeEvents', id,true);
+                        }
+                        else{
+                            //alert(JSON.stringify(data.data));
+                            var id=data.data.id;
+                            parent.$calendar.fullCalendar('removeEvents', id,true);
+                            var eventObject = {
+                                //title: '休息日'
+                            };
+                            var events = $.extend({},eventObject);
+                            events.id = id;
+                            events.title = data.data.holidayName;
+                            events.start =data.data.holidayDate.split(" ")[0];
+                            parent.$calendar.fullCalendar('renderEvent', events,true);
+                        }
+                        parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭弹窗
+
+                    });
+                }else{
+                    parent.layer.msg(data.msg,{icon: 0,time:1500,shade: [0.8, '#393D49']});
+                }
+            });
+        });
+
+
+    });
+
+</script>
+</body>
+</html>

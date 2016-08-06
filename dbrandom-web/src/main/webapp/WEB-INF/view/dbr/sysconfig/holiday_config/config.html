@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'角色', styles:'bootstrap,font-awesome,animate,style,bootstrap-table,fullcalendar'}){}%>
+</head>
+</head>
+<body>
+
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+
+            <!-- START 右侧数据 -->
+            <div id='calendar'></div>
+            <!-- END 右侧数据 -->
+        </div>
+    </div>
+</div>
+
+
+<%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,bootstrap-table,bootstrap-table-zh-CN,layer,moment-date,fullcalendar,fullcalendar-lang-zh'}){}%>
+<script>
+    var $calendar = $('#calendar');
+    $(document).ready(function() {
+        var currentTimezone = false;
+        function renderCalendar() {
+            $('#calendar').fullCalendar({
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month'
+                },
+                height: getHeight(),
+                timezone: currentTimezone,
+                editable: true,
+                selectable: true,
+                eventLimit: true,
+                events:function(start, end, timezone, callback) {
+                    var startDate = moment(start.toDate()).format('YYYY-MM-DD'),endDate = moment(end.toDate()).format('YYYY-MM-DD')
+                    $calendar.fullCalendar( 'removeEvents');
+                    $.ajax({
+                        url: "/holiday/calendarEvents.do?startDate="+startDate+"&endDate="+endDate+"&time="+new Date(),
+                        type:"post",
+                        dataType: 'json',
+                        cache:false,
+                        success: function(obj){
+                            var events =[];
+                            $.each(obj, function (n, value) {
+                                if(value.status==1){
+                                    events.push({
+                                        id: value.id,
+                                        title: value.holidayName,
+                                        start: value.holidayDate.split(" ")[0],          //字符串时间格式化
+                                    });
+                                }
+                            });
+                            //alert(JSON.stringify(events));
+                            callback(events);
+                        },
+                        error:function(){
+                            alert("加载数据失败")
+                        }
+                    })
+                },
+                loading: function(bool) {
+                    $('#loading').toggle(bool);
+                },
+                dayClick: function(date, jsEvent, view, resourceObj) {
+                    var selDate =moment(date).format('YYYY-MM-DD');
+                    $.ajax({
+                       type:'post',
+                        url:'/holiday/find.do?selDate='+selDate,
+                        success:function (data) {
+                            //查询是否有相同的节假日对象且数据状态为1,有 ok:true 无 ok:false
+                            if(data.ok&&data.data.status==1){
+                                layer.alert('你已经设置了。。。', {icon: 6});
+                            }
+                            else {
+                                layer.open({
+                                    title:"添加休息日",
+                                    type: 2,
+                                    area: ['400px', '300px'],
+                                    content: ['/holiday/add.do?selDate='+selDate, 'no']
+                                });
+                            }
+                        }
+                    });
+
+                },
+                select: function(startDate, endDate) {
+                },
+                eventClick:function(event, jsEvent, view ){
+                    var id=event.id;
+                    layer.open({
+                        title:"编辑事件",
+                        type: 2,
+                        area: ['400px', '300px'],
+                        content: ['/holiday/editpage.do?id='+id, 'no']
+                    });
+                }
+
+            });
+        }
+        renderCalendar();
+    });
+
+    //表格高度计算
+    function getHeight() {
+        return $(window).height() -  $('.breadcrumb').outerHeight(true)  - 40;
+    }
+
+</script>
+</body>
+</html>

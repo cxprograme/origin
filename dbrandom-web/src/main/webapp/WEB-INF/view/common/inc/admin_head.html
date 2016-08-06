@@ -1,0 +1,49 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="renderer" content="webkit">
+
+<!--[if lt IE 9]>
+<meta http-equiv="refresh" content="0;ie.html" />
+<![endif]-->
+
+<!-- Global Css Style -->
+<link rel="shortcut icon" href="/assets/img/favicon.ico">
+
+<%
+	var stylemaps = {
+	'bootstrap':'css/bootstrap.min.css?v=3.3.6',
+	'font-awesome':'css/font-awesome.css?v=4.4.0',
+	'animate':'css/animate.css',
+	'style':'css/style.css?v=4.1.0',
+	'morris':'css/plugins/morris/morris-0.4.3.min.css',
+	'gritter':'js/plugins/gritter/jquery.gritter.css',
+	'ztree':'css/plugins/ztree/zTreeStyle/zTreeStyle.css',
+	'bootstrap-table':'css/plugins/bootstrap-table/bootstrap-table.min.css',
+	'dtvalidate':'css/plugins/dtvalidate/jquery.dtValidator.min.css',
+	'icheck':'css/plugins/iCheck/custom.css',
+	'webuploader':'css/plugins/webuploader/webuploader.css',
+	'awesome-checkbox':'css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css',
+	'input-mask':'css/plugins/jasny/jasny-bootstrap.min.css',
+	'jquery-ui':'css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css',
+	'bootstrap-spinner':'css/plugins/bootstrap-spinner/bootstrap-spinner.css',
+	'fullcalendar':'css/plugins/fullcalendar/fullcalendar.min.css',
+	'fullcalendar-print':'css/plugins/fullcalendar/fullcalendar.print.css'
+	};
+%>
+<%
+if( has(styles) ){
+	for(cssmodule in strutil.split(styles,",")){
+		if(!isEmpty(stylemaps[cssmodule])){
+%>
+<link href="/assets/${stylemaps[cssmodule]}" rel="stylesheet"/>
+<%
+		}
+	}
+}
+%>
+
+${layoutContent}
+<title>${app_info_name} - ${title}</title>
+<%if( has(checkiniframe) && checkiniframe ){%>
+<script>if(window.top !== window.self){ window.top.location = window.location;}</script>
+<%}%>

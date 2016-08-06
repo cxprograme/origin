@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+      <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'执法反馈信息', styles:'bootstrap,font-awesome,animate,style,bootstrap-table'}){%>
+      <style>
+          .fixed-table-container{
+              background-color: #fff;
+          }
+          .attach-list{
+              list-style: none;
+              padding-left:10px;
+          }
+      </style>
+      <%}%>
+  </head>
+
+  <body class="gray-bg">
+
+    <div class="wrapper wrapper-content">
+      <div class="row">
+        <div class="col-sm-12">
+
+            <!-- START 右侧数据 -->
+                <!-- START 查询表单 -->
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>查询表单</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <form role="form" id="search-form" class="form-inline" method="post">
+                            <div class="form-group">
+                                <label for="year" class="sr-only">年度:</label>
+                                <select id="year" name="year" class="form-control" >
+                                    <option value="">选择年度</option>
+                                    <option value="2016">2016</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="groupPname" class="sr-only">管理机构</label>
+                                <div class="input-group">
+                                    <input type="hidden" id="groupPid" name="groupId" class="form-control" valid="r" validTitle="管理机构" validInfoArea="groupId_info_area" />
+                                    <input type="text" id="groupPname" name="groupName" placeholder="请选择管理机构" class="form-control" />
+                                    <span class="input-group-btn">
+                                        <a id="selectManageGroup" class="btn btn-primary" style="margin-bottom: 0px;"><i class="fa fa-plus"></i></a>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="year" class="sr-only">日期范围:</label>
+                                <input type="text" id="startDate" name="startDate" class="form-control" placeholder="开始时间"/>-
+                                <input type="text" id="endDate" name="endDate" class="form-control" placeholder="结束时间"/>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="year" class="sr-only">处理结果:</label>
+                                <select name="processStatus" class="form-control">
+                                    <option value="">选择处理结果</option>
+                                    <%for(var dict in dictFun("deal_status","")){%>
+                                    <option value="${dict.detailCode}">${dict.detailName}</option>
+                                    <%}%>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="year" class="sr-only">企业:</label>
+                                <input type="text" name="companyName" class="form-control" placeholder="填写企业名称"/>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="year" class="sr-only">监察人:</label>
+                                <input type="text" name="executorName" class="form-control" placeholder="填写监察人"/>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="year" class="sr-only">编号:</label>
+                                <input type="text" name="recordNo" class="form-control" placeholder="填写编号"/>
+                            </div>
+
+                            <a class="search-btn btn btn-success" style="margin-bottom: 0px;">查询</a>
+                            <button class="btn btn-default" type="reset" style="margin-bottom: 0px;">重置</button>
+                        </form>
+                    </div>
+                </div>
+                <!-- END 查询表单 -->
+
+                <!-- START 数据表格 -->
+                <table id="executefeedbacktable"
+                           data-side-pagination="server"
+                           data-pagination="true"
+                           data-resizable="true"
+                           data-side-pagination="server"
+                           data-url="/execute/feedback/findwithrandom.do?groupId=${groupId}"
+                           data-page-size="15">
+                </table>
+                <!-- END 数据表格 -->
+                
+            <!-- END 右侧数据 -->
+        </div>
+      </div>
+    </div>
+
+    <%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,bootstrap-table,bootstrap-table-zh-CN,layer,laydate'}){}%>
+
+    <script>
+    var $executefeedbacktable = $('#executefeedbacktable'),selections=[];
+    $(function(){
+        
+        //START 表格配置
+        $executefeedbacktable.bootstrapTable({
+            height: getHeight(),
+            columns: [
+                    {
+                        title: '编号',
+                        field: 'recordNo',
+                        align: 'center',
+                        width: 60,
+                        valign: 'middle'
+                    },
+                    {
+                        title: '管理机构',
+                        field: 'groupName',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '检查企业名称',
+                        field: 'companyName',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '检查人',
+                        field: 'executorName',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '检查日期',
+                        field: 'checkDate',
+                        align: 'center',
+                        valign: 'middle',
+                        formatter: function(v,r){
+                            return v.substring(0,11);
+                        }
+                    },
+                    {
+                        title: '处理结果',
+                        field: 'processStatus',
+                        align: 'center',
+                        valign: 'middle',
+                        formatter: function(v,r){
+                            var result = '未填报';
+                            if( r.executeFeedback ){
+                                switch (r.executeFeedback.processStatus){
+                                    <%for(var dict in dictFun("deal_status","")){%>
+                                    case ${dict.detailCode}:
+                                        result = '${dict.detailName}';
+                                        break;
+                                    <%}%>
+                                    default:
+                                        break;
+
+                                }
+                            }
+
+                            return result;
+                        }
+                    },
+                    {
+                        title: '附件',
+                        field: 'executeFeedback',
+                        align: 'left',
+                        valign: 'middle',
+                        formatter: function(v,r){
+
+                            var attachList = '';
+                            if( v && v.attachFile ){
+                                attachList = '<ul class="attach-list" id="attach-'+r.recordNo+'" style="display: none">';
+                                for(var i = 0 ; i < v.attachFile.length; i++){
+                                    attachList += '<li><a href="/execute/feedback/download?fname='+v.attachFile[i].fileName+'&frname='+v.attachFile[i].fileRealName+'">'+ v.attachFile[i].fileRealName +'</a></li>';
+                                }
+                                attachList += '<ul>';
+                            }
+
+                            return v?'<a class="show-attach" data-val="'+ r.recordNo +'">查看</a>'+attachList:'未上传';
+                        }
+                    },{
+                        title: '结果填写',
+                        field: 'fillResult',
+                        align: 'center',
+                        valign: 'middle',
+                        formatter: function(v,r){
+                            if(r.executeFeedback ){
+                                result = '<a class="edit-executefeedback-btn btn btn-xs btn-primary" data-val="'+ r.executeFeedback.id+'" title="查看"><i class="fa fa-search"></i>  查看</a>';
+                            }else{
+                                result = '<a class="add-executefeedback-btn btn btn-xs btn-info" data-val="'+r.recordNo+'" title="填报"><i class="fa fa-edit"></i>  填报</a>';
+                            }
+                            return result;
+                        }
+                    },
+                    {
+                        title: '状态',
+                        field: 'status',
+                        align: 'left',
+                        valign: 'middle',
+                        formatter: function(v,r){
+                            var result = '',ef = r.executeFeedback;
+                            if( ef ){
+                                switch (ef.status){
+                                    <%for(var dict in dictFun("feedback_status","")){%>
+                                    case ${dict.detailCode}:
+                                        result = '${dict.detailName}';
+                                        break;
+                                    <%}%>
+                                    default:
+                                        break
+
+                                }
+                            }
+                            return result;
+                        }
+                    },
+                    /*{
+                        field: 'operate',
+                        title: '日志',
+                        width: 80,
+                        align: 'center',
+                        valign: 'middle',
+                        formatter: function(v,r){
+                            return 0;
+                        }
+                    }*/
+            ],
+            onLoadSuccess : function(){
+
+                //新增执法反馈信息
+                $('.add-executefeedback-btn').on('click',function(){//新增
+                    layer.open({
+                        title: '填写执法反馈信息',
+                        type: 2,
+                        area: ['790px', '500px'],
+                        skin: 'layer-ext-espresso',
+                        content: ['/execute/feedback/addpage.do?rno='+$(this).attr('data-val'), 'no']
+                    });
+                });
+
+                //修改执法反馈信息
+                $('.edit-executefeedback-btn').on('click',function(){
+                    var executefeedbackid = $(this).attr('data-val');
+                    layer.open({
+                        title: '修改执法反馈信息',
+                        type: 2,
+                        area: ['780px', '500px'],
+                        content: ['/execute/feedback/editpage.do?id='+executefeedbackid, 'no']
+                    });
+                });
+
+                //查看附件
+                $('.show-attach').on('click',function(){
+                    $('#attach-'+$(this).attr('data-val')).toggle();
+                });
+            
+            }
+        });
+        //END 表格配置
+
+        var qStart = {
+            elem: '#startDate',
+            event: 'focus',
+            min: '2015-01-01',
+            max: '2099-06-16 23:59:59',
+            choose: function (datas) {
+                qEnd.min = datas;
+                qEnd.start = datas;
+            }
+        };
+        var qEnd = {
+            elem: '#endDate',
+            event: 'focus',
+            min: '2015-01-01',
+            max: '2099-06-16 23:59:59',
+            choose: function (datas) {
+                qStart.max = datas;
+            }
+        }
+
+        laydate(qStart);
+        laydate(qEnd);
+
+        //选择管理机构
+        $('#selectManageGroup').on('click',function(){
+            var gid = $('#groupPid').val();
+            layer.open({
+                title: '选择管理机构',
+                type: 2,
+                area: ['300px', '550px'],
+                skin: 'layer-ext-espresso',
+                content: ['/power/group/selecttree.do?mt=n&blimit=y&gid='+gid, 'yes']
+            });
+        });
+
+        //查询
+        $('.search-btn').on('click', function () {
+            $executefeedbacktable.bootstrapTable('refresh',{ url: '/execute/feedback/findwithrandom.do?'+ $('#search-form').serialize() })
+        });
+
+        //表格高度自适应
+        $(window).resize(function () {
+            $executefeedbacktable.bootstrapTable('resetView', {
+                height: getHeight()
+            });
+        });
+    });
+    
+    //表格高度计算
+    function getHeight() {
+        return $(window).height() - $('.ibox').height() - 70;
+    }
+    </script>
+  </body>
+</html>

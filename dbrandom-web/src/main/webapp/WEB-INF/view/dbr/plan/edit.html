@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+	  <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'修改年度执法计划', styles:'bootstrap,font-awesome,animate,style,dtvalidate'}){%>
+	  <style type="text/css">
+		  body{padding-top:10px;}
+	  </style>
+	  <%}%>
+  </head>
+  <body>
+	<!-- START 内容部分 -->
+	<div class="container">
+		<form class="form-horizontal" id="info-form" method="post">
+				<!-- 年度计划编号 -->
+			<input type="hidden" name="id" value="${yearPlan.id}"/>
+
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">年份</label>
+				<div class="col-sm-6">
+					<input type="text" id="year" name="year" class="form-control" valid="r" validTitle="年份" validInfoArea="year_info_area" value="${yearPlan.year}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="year_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">管理机构编号</label>
+				<div class="col-sm-6">
+					<input type="text" id="groupId" name="groupId" class="form-control" valid="r" validTitle="管理机构编号" validInfoArea="groupId_info_area" value="${yearPlan.groupId}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="groupId_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">年计划总数</label>
+				<div class="col-sm-6">
+					<input type="text" id="yearTotal" name="yearTotal" class="form-control" valid="r" validTitle="年计划总数" validInfoArea="yearTotal_info_area" value="${yearPlan.yearTotal}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="yearTotal_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">重点企业数量</label>
+				<div class="col-sm-6">
+					<input type="text" id="importantTotal" name="importantTotal" class="form-control" valid="r" validTitle="重点企业数量" validInfoArea="importantTotal_info_area" value="${yearPlan.importantTotal}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="importantTotal_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">一般企业数量</label>
+				<div class="col-sm-6">
+					<input type="text" id="normalTotal" name="normalTotal" class="form-control" valid="r" validTitle="一般企业数量" validInfoArea="normalTotal_info_area" value="${yearPlan.normalTotal}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="normalTotal_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">人数</label>
+				<div class="col-sm-6">
+					<input type="text" id="memberNum" name="memberNum" class="form-control" valid="r" validTitle="人数" validInfoArea="memberNum_info_area" value="${yearplan.memberNum}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="memberNum_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">抽查比例</label>
+				<div class="col-sm-6">
+					<input type="text" id="checkPercent" name="checkPercent" class="form-control" valid="r" validTitle="抽查比例" validInfoArea="checkPercent_info_area" value="${yearplan.checkPercent}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="checkPercent_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">创建时间</label>
+				<div class="col-sm-6">
+					<input type="text" id="createDate" name="createDate" class="form-control" valid="r" validTitle="创建时间" validInfoArea="createDate_info_area" value="${yearPlan.createDate}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="createDate_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">修改时间</label>
+				<div class="col-sm-6">
+					<input type="text" id="modifyDate" name="modifyDate" class="form-control" valid="r" validTitle="修改时间" validInfoArea="modifyDate_info_area" value="${yearPlan.modifyDate}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="modifyDate_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">删除标志</label>
+				<div class="col-sm-6">
+					<input type="text" id="deleted" name="deleted" class="form-control" valid="r" validTitle="删除标志" validInfoArea="deleted_info_area" value="${yearPlan.deleted}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="deleted_info_area"></p></div>
+			</div>
+			
+			<div class="form-group">
+				<div class="col-sm-offset-2 col-sm-10">
+					<button type="button" class="save-btn btn btn-primary">
+						<i class="fa fa-save"></i> 提交
+					</button>
+				</div>
+			</div>
+		</form>
+	</div>
+	<!-- END 内容部分 -->
+	
+	<!-- START 公共脚本 -->
+    <%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,dtvalidate,dtvalidate-lang-zh_cn'}){}%>
+	<!-- END 公共脚本 -->
+	<script>
+	var cvalidator;
+	$(function(){
+		//初始化验证器
+		cvalidator = $('#info-form').dtValidator();
+		
+		//提交表单
+		$('.save-btn').on('click',function(){
+			if(!cvalidator.validResult()){
+				$.fn.DtValidator.tools.toast('验证失败！', 'error', 2000);
+				return;
+			}
+			
+			//数据提交
+			$.post('/yearplan/info/usave.do',$('#info-form').serialize(),function(data){
+				if( data.ok ){
+					parent.layer.msg(data.msg,{icon:1,time:1500,shade: [0.8, '#393D49']}, function(){
+						parent.$yearplantable.bootstrapTable('refresh');
+						parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭弹窗
+					});
+				}else{
+					parent.layer.msg(data.msg,{icon: 0,time:1500,shade: [0.8, '#393D49']});
+				}
+			});
+		});
+    });
+    </script>
+  </body>
+</html>

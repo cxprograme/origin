@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.dbr.sysconfig.mapper.ConfigHolidayMapper">
+
+    <!-- 返回结果集映射 节假日配置信息 -->
+    <resultMap type="configHoliday" id="configHolidayMap">
+        <!-- 配置编号 -->
+        <id column="id" property="id"/>
+        <!-- 节假日日期 -->
+        <result column="holiday_date" property="holidayDate"/>
+        <!-- 节假日日期 -->
+        <result column="holiday_name" property="holidayName"/>
+        <!-- 设置状态0工作日 1休息日 -->
+        <result column="status" property="status"/>
+        <!-- 创建时间 -->
+        <result column="create_date" property="createDate"/>
+        <!-- 修改时间 -->
+        <result column="modify_date" property="modifyDate"/>
+    </resultMap>
+
+    <!-- 节假日配置信息 表名定义 -->
+    <sql id="tableName">t_config_holiday</sql>
+
+    <!-- 节假日配置信息 所有列定义 -->
+    <sql id="tbAllColumns">
+		id,
+		holiday_date,
+		holiday_name,
+		status,
+		create_date,
+		modify_date
+	</sql>
+
+    <!-- 节假日配置信息 新增列定义 -->
+    <sql id="tbInsertColumns">
+		holiday_date,
+		holiday_name,
+		status,
+		create_date,
+		modify_date
+	</sql>
+
+    <!-- 新增 节假日配置信息-->
+    <insert id="insert" parameterType="configHoliday" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES(
+        #{holidayDate},
+        #{holidayName},
+        #{status},
+        sysdate(),
+        #{modifyDate}
+        )
+    </insert>
+
+    <!-- 批量新增 节假日配置信息-->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO
+        <include refid="tableName"/>
+        (
+        <include refid="tbInsertColumns"/>
+        )
+        VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.holidayDate},
+            #{item.holidayName},
+            #{item.status},
+            sysdate(),
+            #{item.modifyDate}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改 节假日配置信息-->
+    <update id="update" parameterType="configHoliday">
+        UPDATE
+        <include refid="tableName"/>
+        <set>
+            <if test="holidayDate != null">holiday_date = #{holidayDate},</if>
+            <if test="holidayName != null and holidayName !=''">holiday_name = #{holidayName},</if>
+           status = #{status},
+            <if test="createDate != null">create_date = #{createDate},</if>
+            <if test="modifyDate != null">modify_date = #{modifyDate}</if>
+        </set>
+        WHERE
+        id = #{id}
+    </update>
+
+    <!-- 删除 节假日配置信息-->
+    <delete id="delete" parameterType="int">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id = #{id}
+    </delete>
+
+
+    <!-- 批量删除 节假日配置信息-->
+    <delete id="deleteByIds" parameterType="list">
+        DELETE FROM
+        <include refid="tableName"/>
+        WHERE
+        id IN
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+
+    <!-- 查询指定节假日配置信息 -->
+    <select id="queryByConfigHolidayId" parameterType="Integer" resultMap="configHolidayMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有节假日配置信息 -->
+    <select id="queryAllConfigHoliday" resultMap="configHolidayMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+    </select>
+
+    <!-- 多条件 查询节假日配置信息 -->
+    <select id="queryByCnd" resultMap="configHolidayMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        <where>
+            <if test="id != null">id = #{id}</if>
+            <if test="holidayDate != null">AND holiday_date = #{holidayDate}</if>
+            <if test="holidayName != null">AND holiday_name = #{holidayName}</if>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="createDate != null ">AND create_date = #{createDate}</if>
+            <if test="modifyDate != null ">AND modify_date = #{modifyDate}</if>
+        </where>
+    </select>
+
+    <!-- 查询指定时间范围内指定类型日期状态 -->
+    <select id="queryByDateRangeWithStatus" resultMap="configHolidayMap">
+        SELECT
+        <include refid="tbAllColumns"/>
+        FROM
+        <include refid="tableName"/>
+        <where>
+            <if test="startDate != null">holiday_date &gt;= #{startDate}</if>
+            <if test="endDate != null">AND holiday_date &lt;= #{endDate}</if>
+            <if test="status != null">AND status = #{status}</if>
+        </where>
+    </select>
+
+</mapper>

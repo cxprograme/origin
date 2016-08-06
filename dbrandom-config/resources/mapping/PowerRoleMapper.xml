@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codecrane.core.power.mapper.PowerRoleMapper">
+
+	<!-- 返回结果集映射 角色信息表 -->
+	<resultMap type="powerRole" id="powerRoleMap">
+		<!-- 角色编号 -->
+		<id column="role_id" property="id" />
+		<!-- 角色名称 -->
+		<result column="role_name" property="roleName"/>	
+		<!-- 角色描述 -->
+		<result column="role_desc" property="roleDesc"/>	
+		<!-- 删除标志 -->
+		<result column="deleted" property="deleted"/>	
+		<!-- 启用标志 -->
+		<result column="enabled" property="enabled"/>	
+		<!-- 创建时间 -->
+		<result column="create_date" property="createDate"/>	
+		<!-- 更新时间 -->
+		<result column="modify_date" property="modifyDate"/>	
+	</resultMap>
+	
+	<!-- 角色信息表 表名定义 -->
+	<sql id="tableName">power_role</sql>
+
+	<!-- 角色信息表 所有列定义 -->
+	<sql id="tbAllColumns">
+		role_id,
+		role_name,
+		role_desc,
+		deleted,
+		enabled,
+		create_date,
+		modify_date
+	</sql>
+	<sql id="tbSelectColumns">
+		tba.role_id,
+		tba.role_name,
+		tba.role_desc,
+		tba.deleted,
+		tba.enabled,
+		tba.create_date,
+		tba.modify_date
+	</sql>
+
+	<!-- 角色信息表 新增列定义 -->
+	<sql id="tbInsertColumns">
+		role_name,
+		role_desc,
+		deleted,
+		enabled,
+		create_date,
+		modify_date
+	</sql>
+
+	<!-- 新增 角色信息表-->
+	<insert id="insert" parameterType="powerRole" useGeneratedKeys="true" keyColumn="role_id" keyProperty="id">
+		INSERT INTO 
+			<include refid="tableName"/>
+			(
+			<include refid="tbInsertColumns"/>
+			)
+		VALUES(
+			#{roleName},
+			#{roleDesc},
+			0,
+			#{enabled},
+			sysdate(),
+			#{modifyDate}
+		)
+	</insert>	
+
+	<!-- 批量新增 角色信息表-->
+	<insert id="insertBatch" parameterType="list">
+		INSERT INTO 
+			<include refid="tableName"/>
+			(
+			<include refid="tbInsertColumns"/>
+			)
+		VALUES
+		<foreach item="item" index="index" collection="list" separator=",">
+        (
+			#{item.roleName},
+			#{item.roleDesc},
+			0,
+			#{item.enabled},
+			sysdate(),
+			#{item.modifyDate}
+		)
+		</foreach>
+	</insert>
+
+	<!-- 新增用户与角色关联关系 -->
+	<insert id="insertRelUserRole" parameterType="relUserRole">
+		INSERT INTO
+			rel_user_role
+			(user_id, role_id)
+		VALUES
+			(
+			#{userId},
+			#{roleId}
+			)
+	</insert>
+
+	<!-- 批量新增用户与角色关联关系 -->
+	<insert id="batchInsertRelUserRole" parameterType="list">
+		INSERT INTO
+		rel_user_role
+		(user_id, role_id)
+		VALUES
+		<foreach item="item" index="index" collection="list" separator=",">
+			(
+			#{item.userId},
+			#{item.roleId}
+			)
+		</foreach>
+	</insert>
+	
+	<!-- 修改 角色信息表-->
+	<update id="update" parameterType="powerRole">
+		UPDATE 
+			<include refid="tableName"/>
+		<set>
+			<if test="roleName != null  and roleName !=''">role_name = #{roleName},</if>
+			<if test="roleDesc != null and roleDesc !=''">role_desc = #{roleDesc},</if>
+			<if test="enabled != null">enabled = #{enabled},</if>
+			modify_date = sysdate()
+		</set>
+		WHERE
+			role_id = #{id}
+	</update>
+	
+	<!-- 删除 角色信息表-->
+	<delete id="delete" parameterType="int">
+		UPDATE 
+			<include refid="tableName"/>
+		SET
+			deleted = 1
+		WHERE
+			role_id = #{id}
+	</delete>
+	
+	<!-- 批量删除 角色信息表-->
+	<delete id="deleteByIds" parameterType="list">
+		UPDATE 
+			<include refid="tableName"/>
+		SET
+			deleted = 1
+		WHERE
+			role_id IN 
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+        #{item}
+		</foreach>
+	</delete>
+
+	<!-- 删除指定用户与角色关系 -->
+	<delete id="deleteRelUserRoleByUserId" parameterType="long">
+		DELETE FROM rel_user_role WHERE user_id = #{userId}
+	</delete>
+
+	<!-- 删除指定角色与用户关系 -->
+	<delete id="deleteRelUserRoleByRoleId" parameterType="long">
+		DELETE FROM rel_user_role WHERE role_id = #{roleId}
+	</delete>
+	
+	<!-- 查询指定角色信息表 -->
+	<select id="queryByPowerRoleId" parameterType="long" resultMap="powerRoleMap"> 
+		SELECT <include refid="tbAllColumns"/> FROM <include refid="tableName"/> WHERE role_id = #{id}
+	</select>
+
+	<!-- 查询所有角色信息表 -->
+	<select id="queryAllPowerRole" resultMap="powerRoleMap">
+		SELECT <include refid="tbAllColumns"/> FROM <include refid="tableName"/> WHERE deleted = 0
+	</select>
+
+	<!-- 查询指定用户关联的角色信息 -->
+	<select id="queryByUserId" resultMap="powerRoleMap" parameterType="long">
+		SELECT <include refid="tbSelectColumns"/>
+		FROM <include refid="tableName"/> tba
+		LEFT JOIN rel_user_role tbb ON tbb.role_id = tba.role_id
+		WHERE tba.deleted = 0 AND tbb.user_id = #{userId}
+	</select>
+
+</mapper>

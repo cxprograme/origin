@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+	  <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'修改管理对象', styles:'bootstrap,font-awesome,animate,style,dtvalidate,awesome-checkbox'}){%>
+	  <style type="text/css">
+		  body{padding-top:10px;}
+		  .tab-pane{
+			  height:400px;
+		  }
+	  </style>
+	  <%}%>
+  </head>
+  <body>
+	<!-- START 内容部分 -->
+	<div class="container">
+
+		<form class="form-horizontal" id="info-form" method="post">
+			<!-- 企业编号 -->
+			<input type="hidden" name="id" value="${company.id}"/>
+			<ul class="nav nav-tabs">
+				<li class="active">
+					<a data-toggle="tab" href="#tab-1" aria-expanded="true">必填信息</a>
+				</li>
+				<li class="">
+					<a data-toggle="tab" href="#tab-2" aria-expanded="false">扩展信息</a>
+				</li>
+				<li class="">
+					<a data-toggle="tab" href="#tab-3" aria-expanded="false">下级节点</a>
+				</li>
+			</ul>
+			<div class="tab-content">
+				<!-- START 必填信息 -->
+				<div id="tab-1" class="tab-pane active">
+					<div class="panel-body">
+
+						<div class="form-group">
+							<label class="col-sm-2 control-label text-right">对象名称</label>
+							<div class="col-sm-6">
+								<input type="text" id="name" name="name" class="form-control" valid="r" validTitle="对象名称" validInfoArea="name_info_area" value="${company.name}"/>
+							</div>
+							<div class="col-sm-4"><p class="help-block" id="name_info_area"></p></div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label text-right">地址</label>
+							<div class="col-sm-6">
+								<input type="text" id="address" name="address" class="form-control" valid="r" validTitle="联系地址" validInfoArea="address_info_area" value="${company.address}"/>
+							</div>
+							<div class="col-sm-4"><p class="help-block" id="address_info_area"></p></div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label text-right">环保负责人</label>
+							<div class="col-sm-3">
+								<input type="text" id="evManager" name="evManager" class="form-control" valid="r" validTitle="环保负责人" validInfoArea="evManager_info_area" value="${company.evManager}"/>
+								<span class="help-block m-b-none" id="evManager_info_area"></span>
+							</div>
+							<label class="col-sm-2 control-label text-right">手机</label>
+							<div class="col-sm-3">
+								<input type="text" id="mobile" name="mobile" class="form-control" valid="r|mobile" validTitle="联系手机" validInfoArea="mobile_info_area"  value="${company.mobile}"/>
+								<span class="help-block m-b-none" id="mobile_info_area"></span>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-sm-2 control-label text-right">对象类型</label>
+							<div class="col-sm-3">
+								<div class="radio radio-primary radio-inline">
+									<input type="radio" id="type-1" name="type" valid="r" validTitle="对象类型" validInfoArea="type_info_areaa" value="1" ${decode(company.type,1,"checked","")}/>
+									<label for="type-1"> 重点 </label>
+								</div>
+								<div class="radio radio-primary radio-inline">
+									<input type="radio" id="type-0" name="type" valid="r" validTitle="对象类型" validInfoArea="type_info_area" value="0" ${decode(company.type,0,"checked","")}/>
+									<label for="type-0"> 一般 </label>
+								</div>
+								<span class="help-block m-b-none" id="type_info_area"></span>
+
+							</div>
+							<label class="col-sm-2 control-label text-right">分类属性</label>
+							<div class="col-sm-3">
+								<select id="trade" name="trade" class="form-control" valid="r" validTitle="分类属性" validInfoArea="trade_info_area">
+									<option value="">选择分类属性</option>
+									<%for(var dict in dictFun("company_trade","")){%>
+									<option value="${dict.detailCode}" ${decode(company.trade,dict.detailCode,"selected","")}>${dict.detailName}</option>
+									<%}%>
+								</select>
+								<span class="help-block m-b-none" id="trade_info_area"></span>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-sm-2 control-label text-right">管理机构</label>
+							<div class="col-sm-6">
+								<div class="input-group">
+									<input type="hidden" id="groupPid" name="groupId" class="form-control" valid="r" validTitle="管理机构" validInfoArea="groupId_info_area" value="${company.groupId}"/>
+									<input type="text" id="groupPname" name="groupName" class="form-control" valid="r" validTitle="管理机构" validInfoArea="groupId_info_area" value="${company.groupName}" readonly/>
+									<span class="input-group-btn">
+										<a id="selectManageGroup" class="btn btn-primary"><i class="fa fa-plus"></i> 选择</a>
+									</span>
+								</div>
+							</div>
+							<div class="col-sm-4"><p class="help-block" id="groupId_info_area"></p></div>
+						</div>
+					</div>
+				</div>
+				<!-- END 必填信息 -->
+				<!-- START 扩展信息 -->
+				<div id="tab-2" class="tab-pane">
+					<div class="panel-body">
+						<div class="form-group">
+							<label class="col-sm-2 control-label text-right">固定电话</label>
+							<div class="col-sm-6">
+								<input type="text" id="phone" name="phone" class="form-control" valid="r" validTitle="固定电话" validInfoArea="phone_info_area" value="${company.phone}"/>
+							</div>
+							<div class="col-sm-4"><p class="help-block" id="phone_info_area"></p></div>
+						</div>
+					</div>
+				</div>
+				<!-- END 扩展信息 -->
+				<!-- START 下级节点 -->
+				<div id="tab-3" class="tab-pane">
+					<div class="panel-body">
+						<div id="extattrs" class="col-sm-12" style="height: 330px; overflow-y: auto;">
+
+							<div class="form-group point-info">
+								<label class="col-sm-2  text-center" style="padding-left: 0px;">顺序</label>
+								<label class="col-sm-4 text-center">点位名称</label>
+								<label class="col-sm-4  text-center">说明</label>
+								<label class="col-sm-2  text-center">操作</label>
+							</div>
+
+							<%for(var point in points){ %>
+							<div class="form-group point-info">
+								<div class="col-sm-2">
+									<input type="text" name="companyPoints[${pointLP.index-1}].orderId" class="form-control input-sm" valid="number" validTitle="顺序" validInfoArea="attr_code_info_area" value="${point.orderId}"/>
+								</div>
+
+								<div class="col-sm-4">
+									<input type="text" name="companyPoints[${pointLP.index-1}].pointName" class="form-control input-sm" value="${point.pointName}"/>
+								</div>
+
+								<div class="col-sm-4">
+									<input type="text" name="companyPoints[${pointLP.index-1}].pointDesc" class="form-control input-sm" value="${point.pointDesc}"/>
+								</div>
+
+								<div class="col-sm-2 text-center">
+									<a class="del-attr-btn btn btn-xs btn-danger" data-val="0"><i class="fa fa-minus-circle"></i> 删除</a>
+								</div>
+							</div>
+							<%}%>
+						</div>
+
+						<div style="padding-left: 20px;">
+							<a class="add-tag-btn btn btn-xs btn-info"><i class="fa fa-plus"></i> 继续添加位点</a>
+							<span id="attr_code_info_area" style="font-size: 14px;float: right;"></span>
+						</div>
+					</div>
+				</div>
+				<!-- END 下级节点 -->
+			</div>
+
+			<div class="form-group">
+				<div class="col-sm-10 text-center">
+					<button type="button" class="save-btn btn btn-primary">
+						<i class="fa fa-save"></i> 保存
+					</button>
+				</div>
+			</div>
+
+		</form>
+
+	</div>
+	<!-- END 内容部分 -->
+
+	<%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,dtvalidate,dtvalidate-lang-zh_cn,datepicker'}){}%>
+	<script>
+	var cvalidator,pointCount = ${points.~size-1};
+	$(function(){
+		//初始化验证器
+		cvalidator = $('#info-form').dtValidator();
+		
+		//提交表单
+		$('.save-btn').on('click',function(){
+			if(!cvalidator.validResult()){
+				$.fn.DtValidator.tools.toast('验证失败！', 'error', 2000);
+				return;
+			}
+			
+			//数据提交
+			$.post('/company/info/usave.do',$('#info-form').serialize(),function(data){
+				if( data.ok ){
+					parent.layer.msg(data.msg,{icon:1,time:1500,shade: [0.8, '#393D49']}, function(){
+						parent.$companytable.bootstrapTable('refresh');
+						parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭弹窗
+					});
+				}else{
+					parent.layer.msg(data.msg,{icon: 0,time:1500,shade: [0.8, '#393D49']});
+				}
+			});
+		});
+
+		//选择管理机构
+		$('#selectManageGroup').on('click',function(){
+			parent.layer.open({
+				title: '选择管理机构',
+				type: 2,
+				area: ['300px', '550px'],
+				skin: 'layer-ext-espresso',
+				content: ['/power/group/selecttree.do', 'yes']
+			});
+		});
+
+		//添加下级节点事件
+		$('.add-tag-btn').on('click',function(){
+			pointCount++;
+			var tag_html = '<div class="form-group point-info">'+
+					'<div class="col-sm-2">'+
+					'<input type="text" name="companyPoints['+pointCount+'].orderId" class="form-control input-sm" valid="number" validTitle="顺序" validInfoArea="attr_code_info_area" />'+
+					'</div>'+
+					'<div class="col-sm-4">'+
+					'<input type="text" name="companyPoints['+pointCount+'].pointName" class="form-control input-sm" />'+
+					'</div>'+
+					'<div class="col-sm-4">'+
+					'<input type="text" name="companyPoints['+pointCount+'].pointDesc" class="form-control input-sm" />'+
+					'</div>'+
+					'<div class="col-sm-2 text-center">'+
+					'<a class="del-attr-btn btn btn-xs btn-danger" data-val="'+pointCount+'"><i class="fa fa-minus-circle"></i> 删除</a>'+
+					'</div>'+
+					'</div>'
+
+			$('#extattrs').append(tag_html);
+
+			bindDelTagEvent();
+		});
+
+		//删除下级节点事件绑定
+		function bindDelTagEvent(){
+			$('.del-attr-btn').on('click',function(){
+				$(this).parent().parent().remove();
+			});
+		}
+		bindDelTagEvent();
+    });
+    </script>
+  </body>
+</html>

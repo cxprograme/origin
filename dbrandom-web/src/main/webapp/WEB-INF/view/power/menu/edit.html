@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'添加用户', styles:'bootstrap,font-awesome,animate,style,dtvalidate'}){%>
+		<style type="text/css">
+		body{padding-top:10px;}
+		</style>
+		<%}%>
+	</head>
+  <body>
+	<!-- START 内容部分 -->
+	<div class="container">
+		<form class="form-horizontal" id="info-form" method="post">
+			<!-- 菜单编号 -->
+			<input type="hidden" name="id" value="${powermenu.id}"/>
+			<input type="hidden" name="menuPid" value="${powermenu.menuPid}"/>
+			<input type="hidden" name="powerPermission.id" value="${powermenu.powerPermission.id}"/>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">上级菜单</label>
+				<div class="col-sm-6">
+					<input type="text" id="parentMenuName" name="parentMenuName" class="form-control" value="${powermenu.parentMenuName!"无"}" disabled/>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">菜单名称</label>
+				<div class="col-sm-6">
+					<input type="text" id="menuName" name="menuName" class="form-control" valid="r" validTitle="菜单名称" validInfoArea="menuName_info_area" value="${powermenu.menuName}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="menuName_info_area"></p></div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">菜单图标</label>
+				<div class="col-sm-6">
+					<input type="hidden" id="menuIcon" name="menuIcon" class="form-control" valid="r" validTitle="菜单图标" validInfoArea="menuIcon_info_area" value="${powermenu.menuIcon}"/>
+					<i id="icon-preview" class="fa ${powermenu.menuIcon} fa-2"></i>&nbsp;&nbsp;&nbsp;&nbsp;<a class="select-btn btn btn-xs btn-primary"><i class="fa fa-search-plus"></i>  选择图标</a>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="menuIcon_info_area"></p></div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">菜单路径</label>
+				<div class="col-sm-6">
+					<input type="text" id="menuUrl" name="menuUrl" class="form-control" valid="r" validTitle="菜单路径" validInfoArea="menuUrl_info_area" value="${powermenu.menuUrl}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="menuUrl_info_area"></p></div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">菜单编码</label>
+				<div class="col-sm-6">
+					<input type="text" id="menuCode" name="menuCode" class="form-control" valid="r" validTitle="菜单编码" validInfoArea="menuCode_info_area" value="${powermenu.menuCode}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="menuCode_info_area"></p></div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">菜单权限编码</label>
+				<div class="col-sm-6">
+					<input type="text" id="permissionCode" name="powerPermission.permissionCode" class="form-control" valid="r" validTitle="菜单权限编码" validInfoArea="permissionCode_info_area" value="${powermenu.powerPermission.permissionCode}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="permissionCode_info_area"></p></div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">排序号</label>
+				<div class="col-sm-6">
+					<input type="text" id="orderId" name="orderId" class="form-control" valid="r" validTitle="排序号" validInfoArea="orderId_info_area" value="${powermenu.orderId}"/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="orderId_info_area"></p></div>
+			</div>
+			
+			<div class="form-group">
+				<div class="col-sm-offset-2 col-sm-10">
+					<button type="button" class="save-btn btn btn-primary">
+						<i class="fa fa-save"></i> 保存
+					</button>
+				</div>
+			</div>
+		</form>
+	</div>
+	<!-- END 内容部分 -->
+
+	<%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,dtvalidate,dtvalidate-lang-zh_cn'}){}%>
+	<script>
+	var cvalidator;
+	$(function(){
+		//初始化验证器
+		cvalidator = $('#info-form').dtValidator();
+
+		//选择菜单图标
+		$('.select-btn').on('click',function(){
+			parent.layer.open({
+				title: '选择图标',
+				type: 2,
+				area: ['800px', '550px'],
+				skin: 'layer-ext-espresso',
+				content: ['/power/menu/selecticon.do', 'yes']
+			});
+		});
+
+		//提交表单
+		$('.save-btn').on('click',function(){
+			if(!cvalidator.validResult()){
+				$.fn.DtValidator.tools.toast('验证失败！', 'error', 2000);
+				return;
+			}
+			
+			//数据提交
+			$.post('/power/menu/usave.do',$('#info-form').serialize(),function(data){
+				if( data.ok ){
+					parent.layer.msg(data.msg,{icon:1,time:2000,shade: [0.8, '#393D49']}, function(){
+						parent.$powermenutable.bootstrapTable('refresh');
+						var updateMenuNode = parent.treeObj.getNodeByParam("id", ${powermenu.id}, null);
+						updateMenuNode.name = "<i class='fa "+ $('#menuIcon').val() +"'></i>&nbsp;" + $('#menuName').val();
+						parent.treeObj.updateNode(updateMenuNode);
+						parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭弹窗
+					});
+				}else{
+					parent.layer.msg(data.msg,{icon: 0,time:1500,shade: [0.8, '#393D49']});
+				}
+			});
+		});
+    });
+    </script>
+  </body>
+</html>

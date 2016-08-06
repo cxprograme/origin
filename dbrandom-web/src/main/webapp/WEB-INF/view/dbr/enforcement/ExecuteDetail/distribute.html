@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+	  <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'分发执法反馈处理', styles:'bootstrap,font-awesome,animate,style,dtvalidate'}){%>
+	  <style type="text/css">
+		  body{padding-top:10px;}
+	  </style>
+	  <%}%>
+  </head>
+  <body>
+	<!-- START 内容部分 -->
+	<div class="container">
+		<form class="form-horizontal" id="info-form" method="post">
+			<input type="hidden" name="feedbackId" value="${feedback.id}">
+			<input type="hidden" name="status" value="0">
+			<input type="hidden" name="distributeGroupId" value="${groupId}">
+			<input type="hidden" name="fdid" value="${feedbackDetailId}">
+			<input type="hidden" name="twicedistribute" value="${decode(groupId,manageGroupId,0,1)}">
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">任务编号</label>
+				<div class="col-sm-6">
+					<input type="text" id="planId" name="planId" class="form-control" value="${feedback.planId}" readonly/>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">分发给</label>
+				<div class="col-sm-6">
+					<select id="executeGroupId" name="executeGroupId" class="form-control" valid="r" validTitle="分发机构" validInfoArea="executeGroupId_info_area">
+						<option value="">选择分发机构</option>
+						<%
+						for(var group in groups){
+						%>
+						<option value="${group.id}">${group.groupName}</option>
+						<%
+						}%>
+					</select>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="executeGroupId_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">限办日期</label>
+				<div class="col-sm-6">
+					<input type="text" id="endDate" name="endDate" class="form-control" valid="r" validTitle="限办日期" validInfoArea="endDate_info_area" readonly/>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="endDate_info_area"></p></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label text-right">处理意见</label>
+				<div class="col-sm-6">
+					<textarea id="distributeDetail" name="distributeDetail" class="form-control" valid="r" validTitle="处理意见" validInfoArea="distributeDetail_info_area" rows="6"></textarea>
+				</div>
+				<div class="col-sm-4"><p class="help-block" id="distributeDetail_info_area"></p></div>
+			</div>
+
+			<div class="form-group">
+				<div class="col-sm-offset-2 col-sm-10">
+					<button type="button" class="save-btn btn btn-primary">
+						<i class="fa fa-paper-plane-o"></i> 分发
+					</button>
+				</div>
+			</div>
+		</form>
+	</div>
+	<!-- END 内容部分 -->
+	
+	<!-- START 公共脚本 -->
+    <%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,dtvalidate,dtvalidate-lang-zh_cn,laydate'}){}%>
+	<!-- END 公共脚本 -->
+	<script>
+	var cvalidator;
+	$(function(){
+		//初始化验证器
+		cvalidator = $('#info-form').dtValidator();
+
+		laydate({
+			elem: '#endDate',
+			event: 'focus',
+			min: '2015-01-01',
+			choose: function (dates) {
+			}
+		});
+
+		$('#endDate').val(laydate.now(+3));
+
+
+		//提交表单
+		$('.save-btn').on('click',function(){
+			if(!cvalidator.validResult()){
+				$.fn.DtValidator.tools.toast('验证失败！', 'error', 2000);
+				return;
+			}
+			
+			//数据提交
+			$.post('/execute/detail/save.do',$('#info-form').serialize(),function(data){
+				if( data.ok ){
+					parent.layer.msg(data.msg,{icon:1,time:1500,shade: [0.8, '#393D49']}, function(){
+						parent.$todotable.bootstrapTable('refresh');
+						parent.$pushedtable.bootstrapTable('refresh');
+						parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭弹窗
+					});
+				}else{
+					parent.layer.msg(data.msg,{icon: 0,time:1500,shade: [0.8, '#393D49']});
+				}
+			});
+		});
+
+
+    });
+    </script>
+  </body>
+</html>

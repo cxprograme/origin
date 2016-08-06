@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+      <%layout("/WEB-INF/view/common/inc/admin_head.html",{title:'执法者基本信息', styles:'bootstrap,font-awesome,animate,style,bootstrap-table'}){
+      %>
+      <style>
+          .fixed-table-container{
+              background-color: #fff;
+          }
+      </style>
+      <%}%>
+  </head>
+
+  <body class="gray-bg">
+
+    <div class="wrapper wrapper-content">
+      <div class="row">
+        <div class="col-sm-12">
+
+            <!-- START 右侧数据 -->
+                <!-- START 查询表单 -->
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>查询表单</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <form role="form" id="search-form" class="form-inline">
+                            <div class="form-group">
+                                <label for="searchName">&nbsp;&nbsp;姓名:</label>
+                                <input type="text" placeholder="填写要查询的姓名" id="searchName" name="searchName" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label for="groupId">&nbsp;&nbsp;归属:</label>
+                                <select id="groupId" name="groupId" class="form-control" >
+                                    <option value="">全部</option>
+                                    <%
+                                    for(var group in groups){
+                                    if(group.groupType < 3){
+                                    %>
+                                    <option value="${group.id}">${group.groupName}</option>
+                                    <%	}
+                                    }%>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="departmentId">&nbsp;&nbsp;科室:</label>
+                                <select id="departmentId" name="departmentId" class="form-control" >
+                                    <option value="">全部</option>
+                                    <%
+                                    for(var group in groups){
+                                    if(group.groupType > 2){
+                                    %>
+                                    <option value="${group.id}">${group.groupName}</option>
+                                    <%	}
+                                    }%>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="workload">&nbsp;&nbsp;工作量:</label>
+                                <select id="workload" name="workload" class="form-control" >
+                                    <option value="">全部</option>
+                                    <option value="100">100%</option>
+                                    <option value="50">50%</option>
+                                    <option value="0">0%</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="aptitudes">&nbsp;&nbsp;资质:</label>
+                                <select id="aptitudes" name="aptitudes" class="form-control">
+                                    <option value="">全部</option>
+                                    <option value="1">资深</option>
+                                    <option value="2">普通</option>
+                                </select>
+                            </div>
+                            <a class="search-btn btn btn-success" style="margin-bottom: 0px;">查询</a>
+                            <button class="btn btn-default" type="reset" style="margin-bottom: 0px;">重置</button>
+                        </form>
+                    </div>
+                </div>
+                <!-- END 查询表单 -->
+
+                <!-- START 操作按钮 -->
+                <div id="toolbar" class="btn-group" style="margin-bottom:5px;">
+                  <button type="button" class="add-btn btn btn-sm btn-success"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 新增</button>
+                  <button type="button" class="del-btn btn btn-sm btn-danger"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> 删除</button>
+                </div>
+                <!-- END 操作按钮 -->
+                
+                <!-- START 数据表格 -->
+                <table id="lawexecutortable"
+                           data-toolbar="#toolbar"
+                           data-side-pagination="server"
+                           data-pagination="true"
+                           data-resizable="true"
+                           data-side-pagination="server"
+                           data-url="/lawexecutor/info/findall.do?groupId=${groupId}"
+                           data-page-size="15">
+                </table>
+                <!-- END 数据表格 -->
+                
+            <!-- END 右侧数据 -->
+        </div>
+      </div>
+    </div>
+
+    <%layout("/WEB-INF/view/common/inc/admin_js.html",{modules:'jquery,bootstrap,bootstrap-table,bootstrap-table-zh-CN,layer'}){}%>
+
+    <script>
+    var $lawexecutortable = $('#lawexecutortable'),selections=[],groupId = ${groupId};
+    $(function(){
+        
+        //START 表格配置
+        $lawexecutortable.bootstrapTable({
+            height: getHeight(),
+            columns: [
+                    {
+                        field: 'state',
+                        checkbox: true,
+                        align: 'center',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '执法者编号',
+                        field: 'id',
+                        align: 'left',
+                        valign: 'middle',
+                        visible: false
+                    },
+                    {
+                        title: '姓名',
+                        field: 'name',
+                        align: 'left',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                    {
+                        title: '归属管理机构编号',
+                        field: 'groupId',
+                        align: 'left',
+                        valign: 'middle',
+                        visible: false
+                    },
+                    {
+                        title: '归属',
+                        field: 'groupName',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '科室编号',
+                        field: 'departmentId',
+                        align: 'left',
+                        valign: 'middle',
+                        visible: false
+                    },{
+                        title: '科室',
+                        field: 'departmentName',
+                        align: 'left',
+                        valign: 'middle'
+                    },
+                    {
+                        title: '职务',
+                        field: 'dutyId',
+                        align: 'left',
+                        valign: 'middle',
+                        formatter: function(v,r){
+                            var result = '';
+                            switch(v){
+                            <%for(var dict in dictFun("1002","")){%>
+                                case '${dict.detailCode}':
+                                    result = '${dict.detailName}';
+                                    break;
+                            <%}%>
+                                    break;
+                                default:
+                                    break;
+                            }
+                            return result;
+                        }
+                    },
+                    {
+                        title: '联系电话',
+                        field: 'mobile',
+                        align: 'left',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                    {
+                        title: '资质',
+                        field: 'aptitudes',
+                        align: 'left',
+                        valign: 'middle',
+                        sortable: true,
+                        formatter: function(v,r){
+                            if(v==1){
+                                return '资深';
+                            }else if (v==2){
+                                return '普通';
+                            }
+                        }
+                    },
+                    {
+                        title: '工作量',
+                        field: 'workload',
+                        align: 'left',
+                        valign: 'middle',
+                        formatter: function(v,r){
+                           return v + '%';
+                        }
+                    },
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        width: 200,
+                        align: 'center',
+                        valign: 'middle',
+                        formatter: optFormatter
+                    }
+            ],
+            onLoadSuccess : function(){
+                //修改执法者基本信息
+                $('.edit-lawexecutor-btn').on('click',function(){
+                    var lawexecutorid = $(this).attr('data-val');
+                    layer.open({
+                        title: '修改执法者基本信息',
+                        type: 2,
+                        area: ['780px', '500px'],
+                        content: ['/lawexecutor/info/editpage.do?id='+lawexecutorid+'&gid='+groupId, 'no']
+                    });
+                });
+            
+                //删除执法者基本信息
+                $('.del-lawexecutor-btn').on('click',function(){
+                    var delid = $(this).attr('data-val'),delname = $(this).attr('data-val-name');
+                    //删除确认提示
+                    layer.confirm('确定要删除当前执法人员？<br>[<strong>'+delname+'</strong>]', {
+                        btn: ['确定','取消'],title:'提示'
+                    }, function(){
+                        $.post('/lawexecutor/info/delete.do',{ids: delid},function(data){
+                            if( data.ok ){
+                                layer.msg(data.msg,{icon: 1,time: 1500},function(){
+                                    //刷新页面
+                                    $lawexecutortable.bootstrapTable('refresh');
+                                });
+                            }else{
+                                layer.msg(data.msg,{icon: 0,time: 1500});
+                            }
+                        });
+                    });
+
+
+                });
+                
+            }
+        });
+        //END 表格配置
+        
+        //新增执法者基本信息
+        $('.add-btn').on('click',function(){//新增
+            layer.open({
+                title: '新增执法者基本信息',
+                type: 2,
+                area: ['790px', '500px'],
+                skin: 'layer-ext-espresso', 
+                content: ['/lawexecutor/info/addpage.do?gid='+groupId, 'no']
+            });
+        });
+
+        //查询
+        $('.search-btn').on('click',function(){//新增
+            if( !$('#groupId').val() ){
+                $('#groupId').val(${groupId});
+            }
+            $lawexecutortable.bootstrapTable('refresh', { url: '/lawexecutor/info/findall.do?'+$('#search-form').serialize() });
+        });
+        
+        //删除执法者基本信息
+        $('.del-btn').on('click',function(){
+            var selDatas = $lawexecutortable.bootstrapTable('getSelections');
+            if( selDatas.length == 0 ){
+                layer.msg('请选择要删除的执法者基本信息',{icon: 0,shade: [0.8, '#393D49'],time: 1500});
+            }else{
+                var ids = [],names = [];
+                $.each(selDatas,function(i,d){
+                    ids.push(d.id);
+                    names.push(d.name);
+                });
+                ids = ids.join(',');
+                names = names.join(',');
+
+                layer.confirm('确定要删除这些执法人员？<br>[<strong>'+names+'</strong>]', {
+                    btn: ['确定','取消'],title:'提示'
+                }, function(){
+                    $.post('/lawexecutor/info/delete.do',{ids:ids},function(data){
+                        if( data.ok ){
+                            layer.msg(data.msg,{icon: 1,time: 1500},function(){
+                                //刷新页面
+                                $lawexecutortable.bootstrapTable('refresh');
+                            });
+                        }else{
+                            layer.msg(data.msg,{icon: 0,time: 1500});
+                        }
+                    });
+                });
+
+            }
+        });
+        
+        //表格高度自适应
+        $(window).resize(function () {
+            $lawexecutortable.bootstrapTable('resetView', {
+                height: getHeight()
+            });
+        });
+    });
+    
+    //操作菜单
+    function optFormatter(value,row){
+        var content = '<button class="edit-lawexecutor-btn btn btn-xs btn-info" data-val="'+row.id+'" title="修改"><i class="fa fa-edit"></i>  编辑</button>';
+        content += '&nbsp;<button class="del-lawexecutor-btn btn btn-xs btn-danger" data-val="'+row.id+'" data-val-name="'+row.name+'" title="删除"><i class="fa fa-trash-o"></i>  删除</button>';
+        return content;
+    }
+    
+    //表格高度计算
+    function getHeight() {
+        return $(window).height() - $('.btn-group').outerHeight(true) - $('.breadcrumb').outerHeight(true) - 150;
+    }
+    </script>
+  </body>
+</html>
